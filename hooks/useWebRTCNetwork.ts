@@ -53,9 +53,9 @@ export function useWebRTCNetwork(onIncomingMessage?: (msg: NetworkMessage) => vo
     }
   }, []);
 
-  const disconnectRoom = useCallback(() => {
+  const disconnectRoom = useCallback(async () => {
     if (networkManagerRef.current) {
-      networkManagerRef.current.disconnect();
+      await networkManagerRef.current.disconnect();
       setRoomId(null);
       setConnectionStatus('DISCONNECTED');
     }

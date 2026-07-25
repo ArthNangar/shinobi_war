@@ -120,9 +120,10 @@ export class FirebaseSignalingClient {
     throw new Error(`[Firebase RTDB] Request failed after ${maxRetries} backoff attempts.`);
   }
 
-  // Clear room signaling data from localStorage, local listeners & signaling API
-  clearRoom(roomId: string): void {
+  // Clear room signaling data from LocalStorage & Next.js Signaling API
+  async clearRoom(roomId: string): Promise<void> {
     const normalizedRoom = roomId.replace(/^\//, '');
+
     if (typeof window !== 'undefined') {
       try {
         const keysToRemove = [
@@ -136,11 +137,11 @@ export class FirebaseSignalingClient {
     }
 
     try {
-      fetch('/api/signaling', {
+      await fetch('/api/signaling', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'clear', path: `rooms/${normalizedRoom}` }),
-      }).catch(() => {});
+      });
     } catch (_) {}
   }
 

@@ -106,7 +106,7 @@ export class WebRTCNetworkManager {
     this.hasProcessedOffer = false;
     this.setStatus('CONNECTING');
     this.signaling.reset();
-    this.signaling.clearRoom(roomId);
+    await this.signaling.clearRoom(roomId);
     this.pendingIceCandidates = [];
 
     this.initPeerConnection();
@@ -464,10 +464,15 @@ export class WebRTCNetworkManager {
     }
   }
 
-  public disconnect(): void {
+  public async disconnect(): Promise<void> {
     this.isReconnecting = false;
     this.reconnectAttempts = 0;
     this.outgoingBuffer = [];
+    if (this.currentRoomId && this.isHost) {
+      try {
+        await this.signaling.clearRoom(this.currentRoomId);
+      } catch (_) {}
+    }
     this.signaling.closeListeners();
     this.closePeerConnection();
     this.setStatus('DISCONNECTED');

@@ -177,8 +177,8 @@ export class FirebaseSignalingService {
     }
   }
 
-  clearRoom(roomId: string): void {
-    this.client.clearRoom(roomId);
+  async clearRoom(roomId: string): Promise<void> {
+    await this.client.clearRoom(roomId);
   }
 
   reset(): void {
