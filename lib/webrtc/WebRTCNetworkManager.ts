@@ -92,6 +92,8 @@ export class WebRTCNetworkManager {
     }
   }
 
+  private pendingIceCandidates: RTCIceCandidateInit[] = [];
+
   /**
    * Host / Create Room: Initiates WebRTC Offer & DataChannel creation
    */
@@ -100,6 +102,8 @@ export class WebRTCNetworkManager {
     this.isHost = true;
     this.setStatus('CONNECTING');
     this.signaling.reset();
+    this.signaling.clearRoom(roomId);
+    this.pendingIceCandidates = [];
 
     this.initPeerConnection();
 
@@ -127,18 +131,13 @@ export class WebRTCNetworkManager {
           });
           await this.peerConnection?.setRemoteDescription(remoteDesc);
           console.log('[WebRTC Network] Remote answer set successfully.');
+          await this.flushPendingIceCandidates();
         }
       });
 
       // Listen for remote ICE candidates from joiner
       this.signaling.onIceCandidates(roomId, false, async (candidateInit) => {
-        try {
-          if (this.peerConnection && candidateInit) {
-            await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
-          }
-        } catch (e) {
-          console.warn('[WebRTC Network] Error adding caller ICE candidate:', e);
-        }
+        await this.addOrQueueCandidate(candidateInit);
       });
     } catch (err) {
       console.error('[WebRTC Network] Error creating offer:', err);
@@ -154,6 +153,8 @@ export class WebRTCNetworkManager {
     this.isHost = false;
     this.setStatus('CONNECTING');
     this.signaling.reset();
+    this.signaling.clearRoom(roomId);
+    this.pendingIceCandidates = [];
 
     this.initPeerConnection();
 
@@ -177,6 +178,7 @@ export class WebRTCNetworkManager {
           sdp: offerPayload.sdp,
         });
         await this.peerConnection.setRemoteDescription(remoteDesc);
+        await this.flushPendingIceCandidates();
 
         const answer = await this.peerConnection.createAnswer();
         await this.peerConnection.setLocalDescription(answer);
@@ -185,13 +187,7 @@ export class WebRTCNetworkManager {
 
         // Listen for remote ICE candidates from host
         this.signaling.onIceCandidates(roomId, true, async (candidateInit) => {
-          try {
-            if (this.peerConnection && candidateInit) {
-              await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
-            }
-          } catch (e) {
-            console.warn('[WebRTC Network] Error adding callee ICE candidate:', e);
-          }
+          await this.addOrQueueCandidate(candidateInit);
         });
       } catch (err) {
         console.error('[WebRTC Network] Error joining room:', err);
@@ -199,6 +195,34 @@ export class WebRTCNetworkManager {
       }
     });
   }
+
+  private async addOrQueueCandidate(candidateInit: RTCIceCandidateInit): Promise<void> {
+    if (!this.peerConnection) return;
+    if (this.peerConnection.remoteDescription) {
+      try {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
+      } catch (e) {
+        console.warn('[WebRTC Network] Error adding ICE candidate:', e);
+      }
+    } else {
+      this.pendingIceCandidates.push(candidateInit);
+    }
+  }
+
+  private async flushPendingIceCandidates(): Promise<void> {
+    if (!this.peerConnection || !this.peerConnection.remoteDescription) return;
+    while (this.pendingIceCandidates.length > 0) {
+      const candidateInit = this.pendingIceCandidates.shift();
+      if (candidateInit) {
+        try {
+          await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
+        } catch (e) {
+          console.warn('[WebRTC Network] Error adding queued ICE candidate:', e);
+        }
+      }
+    }
+  }
+
 
   private initPeerConnection(): void {
     this.closePeerConnection();

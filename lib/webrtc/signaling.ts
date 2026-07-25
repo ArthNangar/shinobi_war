@@ -177,9 +177,14 @@ export class FirebaseSignalingService {
     }
   }
 
+  clearRoom(roomId: string): void {
+    this.client.clearRoom(roomId);
+  }
+
   reset(): void {
     this.closeListeners();
     this.isListenersClosed = false;
     this.currentRoomId = null;
   }
 }
+

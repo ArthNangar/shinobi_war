@@ -24,6 +24,17 @@ export interface HandSealInfo {
   keyShortcut: string;
 }
 
+export interface HandSealReferenceDetail extends HandSealInfo {
+  englishName: string;
+  description: string;
+  executionSteps: string[];
+  elementAffinity: ElementalAffinity;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Master';
+  featuredInJutsus: string[]; // Names of jutsus using this seal
+  primaryFingers: string;
+}
+
+
 export interface Jutsu {
   id: string;
   name: string;

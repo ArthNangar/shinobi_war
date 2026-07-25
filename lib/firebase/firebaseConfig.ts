@@ -39,11 +39,49 @@ export class FirebaseSignalingClient {
   private databaseUrl: string;
   private activeEventSources: Map<string, EventSource> = new Map();
   private pollIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private localListeners: Map<string, Set<(data: any) => void>> = new Map();
+  private broadcastChannel: BroadcastChannel | null = null;
   private isClosed: boolean = false;
 
   constructor(databaseUrl?: string) {
     const config = getFirebaseConfig();
     this.databaseUrl = (databaseUrl || config.databaseURL || '').replace(/\/$/, '');
+
+    if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
+      try {
+        this.broadcastChannel = new BroadcastChannel('shinobi_seals_local_signaling');
+        this.broadcastChannel.onmessage = (event) => {
+          if (this.isClosed) return;
+          const { path, data } = event.data || {};
+          if (path) {
+            this.notifyLocalListeners(path, data);
+          }
+        };
+
+        window.addEventListener('storage', (e) => {
+          if (this.isClosed || !e.key || !e.key.startsWith('shinobi_sig_')) return;
+          const path = e.key.replace('shinobi_sig_', '');
+          try {
+            const data = e.newValue ? JSON.parse(e.newValue) : null;
+            this.notifyLocalListeners(path, data);
+          } catch (_) {}
+        });
+      } catch (err) {
+        console.warn('[Signaling] BroadcastChannel initialization skipped:', err);
+      }
+    }
+  }
+
+  private notifyLocalListeners(path: string, data: any) {
+    const normalized = path.replace(/^\//, '');
+    const listeners = this.localListeners.get(normalized);
+    if (listeners) {
+      listeners.forEach((cb) => {
+        try {
+          cb(data);
+        } catch (_) {}
+      });
+    }
   }
 
   /**
@@ -54,9 +92,9 @@ export class FirebaseSignalingClient {
     options: RequestInit,
     backoffOpts?: ExponentialBackoffOptions
   ): Promise<Response> {
-    const maxRetries = backoffOpts?.maxRetries ?? 5;
-    const initialDelay = backoffOpts?.initialDelayMs ?? 1000;
-    const maxDelay = backoffOpts?.maxDelayMs ?? 16000;
+    const maxRetries = backoffOpts?.maxRetries ?? 3;
+    const initialDelay = backoffOpts?.initialDelayMs ?? 800;
+    const maxDelay = backoffOpts?.maxDelayMs ?? 8000;
     const factor = backoffOpts?.backoffFactor ?? 2;
 
     let attempt = 0;
@@ -75,17 +113,44 @@ export class FirebaseSignalingClient {
       }
 
       attempt++;
-      console.warn(`[Firebase RTDB] Request failed. Retrying in ${delay}ms (Attempt ${attempt}/${maxRetries})...`);
-      await new Promise((res) => setTimeout(resolve => setTimeout(resolve, delay), delay));
+      await new Promise((res) => setTimeout(res, delay));
       delay = Math.min(delay * factor, maxDelay);
     }
 
-    throw new Error(`[Firebase RTDB] Network request failed after ${maxRetries} backoff attempts.`);
+    throw new Error(`[Firebase RTDB] Request failed after ${maxRetries} backoff attempts.`);
   }
 
-  // Set data at specific RTDB path with exponential backoff
+  // Clear room signaling data from localStorage & local listeners to prevent stale handshake pollution
+  clearRoom(roomId: string): void {
+    const normalizedRoom = roomId.replace(/^\//, '');
+    if (typeof window !== 'undefined') {
+      try {
+        const keysToRemove = [
+          `shinobi_sig_rooms/${normalizedRoom}/offer`,
+          `shinobi_sig_rooms/${normalizedRoom}/answer`,
+          `shinobi_sig_rooms/${normalizedRoom}/callerCandidates`,
+          `shinobi_sig_rooms/${normalizedRoom}/calleeCandidates`,
+        ];
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+      } catch (_) {}
+    }
+  }
+
+  // Set data at specific RTDB path with exponential backoff & local broadcast fallback
   async set(path: string, data: any): Promise<void> {
-    const url = `${this.databaseUrl}/${path.replace(/^\//, '')}.json`;
+    const normalized = path.replace(/^\//, '');
+
+    // 1. Broadcast locally for instant same-browser / localhost tab connection
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`shinobi_sig_${normalized}`, JSON.stringify(data));
+        this.broadcastChannel?.postMessage({ path: normalized, data });
+        this.notifyLocalListeners(normalized, data);
+      } catch (_) {}
+    }
+
+    // 2. Sync remotely to Firebase RTDB for cross-network device connection
+    const url = `${this.databaseUrl}/${normalized}.json`;
     try {
       await this.fetchWithBackoff(url, {
         method: 'PUT',
@@ -93,13 +158,29 @@ export class FirebaseSignalingClient {
         body: JSON.stringify(data),
       });
     } catch (err) {
-      console.warn(`[Firebase RTDB Set Warning] ${path}:`, err);
+      console.warn(`[Firebase RTDB Set Warning] Remote sync for '${normalized}' restricted or offline. Local signaling active.`);
     }
   }
 
-  // Push item into RTDB array/list with exponential backoff
+  // Push item into RTDB array/list with exponential backoff & local fallback
   async push(path: string, data: any): Promise<string | null> {
-    const url = `${this.databaseUrl}/${path.replace(/^\//, '')}.json`;
+    const normalized = path.replace(/^\//, '');
+    const pushKey = `node_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    // 1. Local push & broadcast
+    if (typeof window !== 'undefined') {
+      try {
+        const existingRaw = localStorage.getItem(`shinobi_sig_${normalized}`);
+        const existing = existingRaw ? JSON.parse(existingRaw) : {};
+        existing[pushKey] = data;
+        localStorage.setItem(`shinobi_sig_${normalized}`, JSON.stringify(existing));
+        this.broadcastChannel?.postMessage({ path: normalized, data: existing });
+        this.notifyLocalListeners(normalized, existing);
+      } catch (_) {}
+    }
+
+    // 2. Remote RTDB push
+    const url = `${this.databaseUrl}/${normalized}.json`;
     try {
       const res = await this.fetchWithBackoff(url, {
         method: 'POST',
@@ -107,16 +188,27 @@ export class FirebaseSignalingClient {
         body: JSON.stringify(data),
       });
       const resData = await res.json();
-      return resData?.name || null;
+      return resData?.name || pushKey;
     } catch (err) {
-      console.warn(`[Firebase RTDB Push Warning] ${path}:`, err);
-      return null;
+      return pushKey;
     }
   }
 
-  // Get data from RTDB path with exponential backoff
+  // Get data from RTDB path or local storage fallback
   async get(path: string): Promise<any> {
-    const url = `${this.databaseUrl}/${path.replace(/^\//, '')}.json`;
+    const normalized = path.replace(/^\//, '');
+
+    // Try local storage first if available
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(`shinobi_sig_${normalized}`);
+        if (raw) {
+          return JSON.parse(raw);
+        }
+      } catch (_) {}
+    }
+
+    const url = `${this.databaseUrl}/${normalized}.json`;
     try {
       const res = await this.fetchWithBackoff(url, { method: 'GET' });
       if (!res.ok) return null;
@@ -126,11 +218,28 @@ export class FirebaseSignalingClient {
     }
   }
 
-  // Subscribe to real-time changes at path using Server-Sent Events (SSE) or polling
+  // Subscribe to real-time changes at path using local channel, SSE, or polling
   onValue(path: string, callback: (data: any) => void): () => void {
     if (this.isClosed) return () => {};
 
     const normalizedPath = path.replace(/^\//, '');
+
+    // Register local listener
+    if (!this.localListeners.has(normalizedPath)) {
+      this.localListeners.set(normalizedPath, new Set());
+    }
+    this.localListeners.get(normalizedPath)!.add(callback);
+
+    // Initial local value check
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(`shinobi_sig_${normalizedPath}`);
+        if (raw) {
+          callback(JSON.parse(raw));
+        }
+      } catch (_) {}
+    }
+
     const url = `${this.databaseUrl}/${normalizedPath}.json`;
 
     // Try EventSource (SSE) if supported in browser environment
@@ -156,46 +265,38 @@ export class FirebaseSignalingClient {
           } catch (_) {}
         });
 
-        eventSource.onerror = () => {
-          // SSE fallback to polling if connection drops or CORS issues occur
-        };
+        eventSource.onerror = () => {};
 
         this.activeEventSources.set(normalizedPath, eventSource);
       } catch (_) {}
     }
 
-    // Adaptive Polling backup with Exponential Backoff monitoring
+    // Adaptive Polling backup
     let lastHash = '';
-    let consecutiveFailures = 0;
     
     const pollId = setInterval(async () => {
       if (this.isClosed) return;
 
       const currentData = await this.get(normalizedPath);
       if (currentData !== null) {
-        consecutiveFailures = 0;
         const currentHash = JSON.stringify(currentData);
         if (currentHash !== lastHash) {
           lastHash = currentHash;
           callback(currentData);
-        }
-      } else {
-        consecutiveFailures++;
-        if (consecutiveFailures > 3) {
-          console.warn(`[Firebase RTDB] Polling listener '${normalizedPath}' experienced repeated network failures.`);
         }
       }
     }, 1000);
 
     this.pollIntervals.set(normalizedPath, pollId);
 
-    // Return un-subscribe function
     return () => this.off(normalizedPath);
   }
 
   // Close & unsubscribe listener for path
   off(path: string): void {
     const normalizedPath = path.replace(/^\//, '');
+
+    this.localListeners.delete(normalizedPath);
 
     const es = this.activeEventSources.get(normalizedPath);
     if (es) {
@@ -213,11 +314,17 @@ export class FirebaseSignalingClient {
   // Close all active listeners
   closeAll(): void {
     this.isClosed = true;
+    this.localListeners.clear();
     this.activeEventSources.forEach((es) => es.close());
     this.activeEventSources.clear();
 
     this.pollIntervals.forEach((interval) => clearInterval(interval));
     this.pollIntervals.clear();
+
+    if (this.broadcastChannel) {
+      this.broadcastChannel.close();
+      this.broadcastChannel = null;
+    }
     console.log('[Firebase RTDB] Closed all active signaling database listeners.');
   }
 

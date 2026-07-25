@@ -130,3 +130,181 @@ body {
 .animate-spin-slow {
   animation: spinSlow 12s linear infinite;
 }
+
+/* Pokémon Fire Red Retro Styling & Battle Animations */
+.firered-box {
+  background: linear-gradient(180deg, #1e1b2e 0%, #0d0b18 100%);
+  border: 4px solid #e2b041;
+  outline: 2px solid #571c19;
+  box-shadow: inset 0 0 0 2px #2a0808, 0 8px 24px rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+}
+
+.firered-status-box {
+  background: linear-gradient(180deg, #f8f9fa 0%, #e2e8f0 100%);
+  border: 3px solid #334155;
+  box-shadow: 3px 3px 0px #0f172a, inset 0 0 0 2px #ffffff;
+  border-radius: 6px;
+  color: #0f172a;
+}
+
+.firered-hp-container {
+  background: #1e293b;
+  border: 2px solid #0f172a;
+  border-radius: 9999px;
+  padding: 1px;
+}
+
+.firered-hp-green {
+  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+}
+
+.firered-hp-yellow {
+  background: linear-gradient(180deg, #facc15 0%, #ca8a04 100%);
+}
+
+.firered-hp-red {
+  background: linear-gradient(180deg, #f87171 0%, #dc2626 100%);
+}
+
+/* Battle Stage Pedestals */
+.battle-pedestal-player {
+  background: radial-gradient(ellipse at center, #15803d 0%, #166534 60%, transparent 80%);
+  transform: perspective(300px) rotateX(60deg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.battle-pedestal-opponent {
+  background: radial-gradient(ellipse at center, #1e3a8a 0%, #1e1b4b 60%, transparent 80%);
+  transform: perspective(300px) rotateX(60deg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* Visual Clash Animations */
+@keyframes fireballTravel {
+  0% { transform: scale(0.4) translate(-150px, 100px); opacity: 0.2; }
+  50% { transform: scale(1.3) translate(0px, 0px); opacity: 1; filter: drop-shadow(0 0 35px #ff2e63); }
+  100% { transform: scale(2) translate(150px, -100px); opacity: 0; }
+}
+
+@keyframes waterDragonTravel {
+  0% { transform: scale(0.4) translate(150px, -100px); opacity: 0.2; }
+  50% { transform: scale(1.4) translate(0px, 0px); opacity: 1; filter: drop-shadow(0 0 35px #00f2fe); }
+  100% { transform: scale(2) translate(-150px, 100px); opacity: 0; }
+}
+
+@keyframes clashBurst {
+  0% { transform: scale(0.2) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.6) rotate(180deg); opacity: 1; filter: drop-shadow(0 0 50px #ffb703); }
+  100% { transform: scale(2.2) rotate(360deg); opacity: 0; }
+}
+
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-6px, 4px); }
+  20%, 40%, 60%, 80% { transform: translate(6px, -4px); }
+}
+
+.animate-fireball {
+  animation: fireballTravel 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-water-dragon {
+  animation: waterDragonTravel 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-clash-burst {
+  animation: clashBurst 1.2s ease-out forwards;
+}
+
+.animate-screen-shake {
+  animation: screenShake 0.6s ease-in-out;
+}
+
+/* Naruto Ninja Scroll & Parchment Aesthetic */
+.naruto-scroll-box {
+  background: radial-gradient(circle at center, #fef08a 0%, #fef3c7 60%, #fde68a 100%);
+  border: 4px solid #b45309;
+  box-shadow: inset 0 0 12px rgba(180, 83, 9, 0.4), 0 8px 24px rgba(0, 0, 0, 0.8);
+  color: #451a03;
+  border-radius: 8px;
+}
+
+.naruto-parchment {
+  background: #fef3c7;
+  background-image: radial-gradient(#d97706 0.75px, transparent 0.75px), radial-gradient(#d97706 0.75px, #fef3c7 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+  border: 2px solid #b45309;
+}
+
+/* Sharingan Eye Pulse */
+@keyframes sharinganSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.15); filter: drop-shadow(0 0 10px #ef4444); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.animate-sharingan {
+  animation: sharinganSpin 4s linear infinite;
+}
+
+/* Rasengan Swirl */
+@keyframes rasenganSwirl {
+  0% { transform: rotate(0deg) scale(0.6); opacity: 0.3; }
+  50% { transform: rotate(180deg) scale(1.4); opacity: 1; filter: drop-shadow(0 0 25px #00f2fe); }
+  100% { transform: rotate(360deg) scale(0.6); opacity: 0.3; }
+}
+
+.animate-rasengan {
+  animation: rasenganSwirl 1.2s ease-in-out infinite;
+}
+
+
+/* Dynamic Jutsu Combo Elemental Attack Animations */
+@keyframes lightningFlash {
+  0% { opacity: 0; transform: scale(0.6) rotate(-10deg); }
+  15% { opacity: 1; transform: scale(1.2) rotate(5deg); filter: drop-shadow(0 0 40px #9d4edd); }
+  30% { opacity: 0.4; transform: scale(0.9) rotate(-3deg); }
+  45% { opacity: 1; transform: scale(1.4) rotate(8deg); filter: drop-shadow(0 0 60px #00f2fe); }
+  70% { opacity: 0.8; transform: scale(1.1) rotate(0deg); }
+  100% { opacity: 0; transform: scale(1.6) rotate(15deg); }
+}
+
+@keyframes galePalmBlast {
+  0% { transform: scale(0.2) rotate(0deg); opacity: 0; }
+  40% { transform: scale(1.3) rotate(180deg); opacity: 1; filter: drop-shadow(0 0 35px #2ec4b6); }
+  100% { transform: scale(2.5) rotate(360deg); opacity: 0; }
+}
+
+@keyframes mudWallErupt {
+  0% { transform: translateY(120px) scaleY(0.2); opacity: 0; }
+  50% { transform: translateY(0) scaleY(1.1); opacity: 1; filter: drop-shadow(0 0 30px #8d99ae); }
+  80% { transform: translateY(0) scaleY(1); opacity: 1; }
+  100% { transform: translateY(20px); opacity: 0; }
+}
+
+@keyframes cloneSmokeBurst {
+  0% { transform: scale(0.3); opacity: 0; filter: blur(20px); }
+  40% { transform: scale(1.2); opacity: 1; filter: blur(2px) drop-shadow(0 0 40px #ffb703); }
+  70% { transform: scale(1); opacity: 0.9; filter: blur(0px); }
+  100% { transform: scale(1.4); opacity: 0; filter: blur(15px); }
+}
+
+.animate-lightning-flash {
+  animation: lightningFlash 1.4s ease-out forwards;
+}
+
+.animate-gale-palm {
+  animation: galePalmBlast 1.2s ease-out forwards;
+}
+
+.animate-mud-wall {
+  animation: mudWallErupt 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-clone-smoke {
+  animation: cloneSmokeBurst 1.5s ease-out forwards;
+}
+
+
