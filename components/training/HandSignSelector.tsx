@@ -4,6 +4,7 @@ import React from 'react';
 import { SealType } from '@/types/shinobi';
 import { HAND_SEALS_REFERENCE_DATA } from '@/lib/game/handSignData';
 import { CheckCircle2, Sparkles } from 'lucide-react';
+import { HandSignIllustration } from './HandSignIllustration';
 
 interface HandSignSelectorProps {
   selectedSignKey: SealType;
@@ -63,19 +64,26 @@ export const HandSignSelector: React.FC<HandSignSelectorProps> = ({
                 </div>
               )}
 
-              {/* Kanji & Emoji Symbol */}
-              <div className="flex items-center justify-between w-full">
-                <span className="text-xl leading-none">{seal.symbol}</span>
-                <span
-                  className="text-xs font-bold font-cinzel opacity-80"
-                  style={{ color: seal.color }}
-                >
-                  {seal.kanji}
-                </span>
+              {/* Kanji, Image & Emoji Symbol */}
+              <div className="flex items-center justify-between w-full gap-1">
+                <HandSignIllustration
+                  sealType={seal.type}
+                  color={seal.color}
+                  size="sm"
+                />
+                <div className="text-right">
+                  <span className="text-sm block">{seal.symbol}</span>
+                  <span
+                    className="text-[11px] font-black font-cinzel opacity-90 block"
+                    style={{ color: seal.color }}
+                  >
+                    {seal.kanji}
+                  </span>
+                </div>
               </div>
 
               {/* Name */}
-              <div className="mt-2 w-full">
+              <div className="mt-1.5 w-full">
                 <p className={`text-xs font-bold truncate ${isSelected ? 'text-cyan-200' : 'text-slate-200'}`}>
                   {seal.name}
                 </p>

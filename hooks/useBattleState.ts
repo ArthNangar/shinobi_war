@@ -48,7 +48,19 @@ export function useBattleState() {
   const [player1, setPlayer1] = useState<PlayerState>(INITIAL_P1);
   const [player2, setPlayer2] = useState<PlayerState>(INITIAL_P2);
   const [battleStatus, setBattleStatus] = useState<'PREPARE' | 'FIGHTING' | 'ENDED'>('FIGHTING');
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [winner, setWinner] = useState<string | null>(null);
+
+  // Load persistent Shinobi Name from sessionStorage if available
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedName = sessionStorage.getItem('shinobiName') || sessionStorage.getItem('shinobi_name');
+      if (savedName) {
+        setPlayer1((prev) => ({ ...prev, name: savedName }));
+      }
+    }
+  }, []);
+
   const [logs, setLogs] = useState<BattleLog[]>([
     {
       id: 'init-1',
@@ -62,10 +74,12 @@ export function useBattleState() {
   const player1Ref = useRef(player1);
   const player2Ref = useRef(player2);
   const battleStatusRef = useRef(battleStatus);
+  const isPausedRef = useRef(isPaused);
 
   useEffect(() => { player1Ref.current = player1; }, [player1]);
   useEffect(() => { player2Ref.current = player2; }, [player2]);
   useEffect(() => { battleStatusRef.current = battleStatus; }, [battleStatus]);
+  useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
@@ -92,6 +106,16 @@ export function useBattleState() {
     ]);
   }, []);
 
+  const pauseBattle = useCallback(() => {
+    setIsPaused(true);
+    addLog('System', '⏸️ Battle paused because player entered Training Mode.', 'SYSTEM');
+  }, [addLog]);
+
+  const resumeBattle = useCallback(() => {
+    setIsPaused(false);
+    addLog('System', '▶️ Battle resumed! Fight!', 'SYSTEM');
+  }, [addLog]);
+
   /**
    * Casts a Jutsu asynchronously, resolving a Promise once the full animation and hit cycle completes (1400ms).
    * Perfect for sequential execution of rapid-fire attack payloads over DataChannel.
@@ -99,7 +123,7 @@ export function useBattleState() {
   const castJutsuAsync = useCallback(
     (casterId: 'p1' | 'p2', jutsu: Jutsu): Promise<boolean> => {
       return new Promise((resolve) => {
-        if (battleStatusRef.current === 'ENDED') {
+        if (isPausedRef.current || battleStatusRef.current === 'ENDED') {
           resolve(false);
           return;
         }
@@ -221,6 +245,7 @@ export function useBattleState() {
     player1,
     player2,
     battleStatus,
+    isPaused,
     winner,
     logs,
     castJutsu,
@@ -228,6 +253,8 @@ export function useBattleState() {
     chargeChakra,
     healPlayer,
     resetBattle,
+    pauseBattle,
+    resumeBattle,
     setPlayer1,
     setPlayer2,
   };

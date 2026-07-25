@@ -4,6 +4,7 @@ import React from 'react';
 import { SealType } from '@/types/shinobi';
 import { HAND_SEALS_REFERENCE_DATA } from '@/lib/game/handSignData';
 import { Award, ArrowRight, RotateCcw, CheckCircle } from 'lucide-react';
+import { HandSignIllustration } from './HandSignIllustration';
 
 interface SignMasteredModalProps {
   masteredSign: SealType | null;
@@ -26,25 +27,26 @@ export const SignMasteredModal: React.FC<SignMasteredModalProps> = ({
         {/* Background Chakra Burst */}
         <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
 
-        {/* Badge Icon */}
-        <div className="relative mx-auto w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-500 to-green-300 border-2 border-emerald-200 flex items-center justify-center text-4xl shadow-xl shadow-emerald-500/50 transform animate-bounce">
-          {sealData.symbol}
-          <div className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-black border border-emerald-400 text-emerald-300 flex items-center justify-center text-xs">
-            ✓
+        {/* Proper Image on the Left along with Name */}
+        <div className="flex items-center justify-center gap-4 p-3 rounded-2xl bg-slate-950/80 border border-emerald-400/50 shadow-inner">
+          <div className="p-2 rounded-xl bg-slate-900 border border-emerald-400/60 shrink-0">
+            <HandSignIllustration
+              sealType={masteredSign}
+              color={sealData.color || '#10B981'}
+              size="md"
+            />
           </div>
-        </div>
-
-        {/* Title */}
-        <div>
-          <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest block">
-            MASTER SHINOBI ACHIEVEMENT
-          </span>
-          <h2 className="text-2xl font-black font-cinzel text-slate-100 mt-1">
-            SIGN MASTERED!
-          </h2>
-          <p className="text-sm text-emerald-300 font-tech mt-1">
-            You successfully maintained the <strong className="text-white">{sealData.name} ({sealData.kanji})</strong> seal for a full 2.0 seconds!
-          </p>
+          <div className="text-left flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{sealData.symbol}</span>
+              <span className="text-lg font-black font-cinzel text-emerald-300">
+                {sealData.name} ({sealData.kanji})
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 font-tech mt-1 leading-tight">
+              {sealData.primaryFingers}
+            </p>
+          </div>
         </div>
 
         {/* EXP Reward Card */}

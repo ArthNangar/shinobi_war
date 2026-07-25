@@ -4,6 +4,7 @@ import React from 'react';
 import { Jutsu } from '@/types/shinobi';
 import { HAND_SEALS_REFERENCE_DATA } from '@/lib/game/handSignData';
 import { Clock, Check, Flame, Shield, Sparkles, ChevronRight, Play } from 'lucide-react';
+import { HandSignIllustration } from './HandSignIllustration';
 
 interface JutsuComboCardProps {
   jutsu: Jutsu;
@@ -80,6 +81,56 @@ export const JutsuComboCard: React.FC<JutsuComboCardProps> = ({
         </p>
       </div>
 
+      {/* CURRENT ACTIVE SIGN REQUIRED HERO BANNER */}
+      {(() => {
+        const activeSealType = jutsu.sequence[Math.min(currentStepIndex, jutsu.sequence.length - 1)];
+        const activeSealData = HAND_SEALS_REFERENCE_DATA[activeSealType];
+
+        return (
+          <div className="relative w-full rounded-2xl bg-slate-950/90 border border-amber-400/50 p-3.5 overflow-hidden flex items-center gap-4 shadow-[0_0_20px_rgba(251,191,36,0.15)] group">
+            <div className="absolute inset-0 scanline-bg opacity-20 pointer-events-none" />
+
+            {/* PROPER HAND SIGN IMAGE ON THE LEFT */}
+            <div className="relative shrink-0 p-2 rounded-xl bg-slate-900 border border-amber-400/60 shadow-lg flex items-center justify-center">
+              <HandSignIllustration
+                sealType={activeSealType}
+                color={activeSealData?.color || '#FFB703'}
+                size="md"
+              />
+              <span className="absolute -bottom-1 -right-1 text-xs font-black px-1.5 py-0.5 rounded bg-black/90 border border-slate-700 text-amber-300 font-cinzel">
+                {activeSealData?.kanji}
+              </span>
+            </div>
+
+            {/* NAME & EXECUTION INSTRUCTIONS ALONGSIDE IMAGE */}
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  NEXT SIGN NEEDED (STEP {Math.min(currentStepIndex + 1, jutsu.sequence.length)}/{jutsu.sequence.length})
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/80 border border-slate-700 text-cyan-300">
+                  Key [{activeSealData?.keyShortcut}]
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-black font-cinzel text-slate-100 truncate">
+                  {activeSealData?.name || activeSealType} Seal
+                </h3>
+                <span className="text-xs font-mono text-slate-400">
+                  {activeSealData?.symbol}
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-300 font-tech line-clamp-2 leading-snug">
+                {activeSealData?.primaryFingers}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Required Sequence Progression Array */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-bold font-tech text-slate-300">
@@ -97,12 +148,11 @@ export const JutsuComboCard: React.FC<JutsuComboCardProps> = ({
             const sealData = HAND_SEALS_REFERENCE_DATA[sealType];
             const isCompleted = idx < currentStepIndex;
             const isActive = idx === currentStepIndex;
-            const isUpcoming = idx > currentStepIndex;
 
             return (
               <div
                 key={`${sealType}-${idx}`}
-                className={`p-2.5 rounded-xl border transition-all flex items-center gap-2.5 relative overflow-hidden ${
+                className={`p-2 rounded-xl border transition-all flex items-center gap-2 relative overflow-hidden ${
                   isCompleted
                     ? 'bg-emerald-950/80 border-emerald-400/80 text-emerald-200 shadow-md shadow-emerald-500/20'
                     : isActive
@@ -112,7 +162,7 @@ export const JutsuComboCard: React.FC<JutsuComboCardProps> = ({
               >
                 {/* Step Counter Badge */}
                 <div
-                  className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
+                  className={`w-5 h-5 rounded-lg text-[11px] font-mono font-bold flex items-center justify-center shrink-0 ${
                     isCompleted
                       ? 'bg-emerald-500 text-black'
                       : isActive
@@ -120,20 +170,28 @@ export const JutsuComboCard: React.FC<JutsuComboCardProps> = ({
                       : 'bg-slate-800 text-slate-400'
                   }`}
                 >
-                  {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
+                  {isCompleted ? <Check className="w-3 h-3 stroke-[3]" /> : idx + 1}
                 </div>
 
-                {/* Sign Icon & Name */}
+                {/* PROPER HAND SIGN IMAGE ON THE LEFT */}
+                <div className="shrink-0">
+                  <HandSignIllustration
+                    sealType={sealType}
+                    color={sealData?.color || '#00F2FE'}
+                    size="sm"
+                  />
+                </div>
+
+                {/* Sign Name & Status */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">{sealData?.symbol || '📜'}</span>
+                    <span className="text-xs font-bold font-cinzel truncate">
+                      {sealData?.name || sealType}
+                    </span>
                     <span className="text-[10px] font-mono text-slate-400">{sealData?.kanji}</span>
                   </div>
-                  <div className="text-xs font-bold font-cinzel truncate">
-                    {sealData?.name || sealType}
-                  </div>
                   <div className="text-[9px] font-mono text-slate-400 truncate">
-                    {isActive ? 'HOLD SIGN FORM' : isCompleted ? 'DONE' : 'WAITING'}
+                    {isActive ? 'FORM NOW' : isCompleted ? 'DONE' : 'WAITING'}
                   </div>
                 </div>
 

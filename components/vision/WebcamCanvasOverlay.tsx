@@ -25,22 +25,22 @@ export const WebcamCanvasOverlay: React.FC<WebcamCanvasOverlayProps> = ({
   playerLabel = 'PLAYER 1 (HERO)',
 }) => {
   return (
-    <div className="relative w-full h-full min-h-[320px] max-h-[500px] rounded-2xl overflow-hidden border border-cyan-500/30 bg-[#0B101D] shadow-2xl flex flex-col group">
+    <div className="relative w-full h-full min-h-[160px] rounded-2xl overflow-hidden border border-cyan-500/30 bg-transparent shadow-2xl flex flex-col group">
       {/* Video & Canvas Container */}
-      <div className="relative flex-1 w-full h-full bg-black flex items-center justify-center overflow-hidden">
-        {/* Hidden HTML <video> element capturing webcam stream */}
+      <div className="relative flex-1 w-full h-full bg-transparent flex items-center justify-center overflow-hidden">
+        {/* Live HTML <video> element capturing webcam stream */}
         <video
           ref={videoRef}
           playsInline
           muted
           autoPlay
-          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 opacity-0 pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 z-0 opacity-100"
         />
 
-        {/* HTML5 Overlay Canvas for graphics and hand landmarks */}
+        {/* HTML5 Overlay Canvas for hand landmarks and skeleton tracking */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 z-10"
+          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 z-10 pointer-events-none"
         />
 
         {/* Scanline Grid Background Effect */}

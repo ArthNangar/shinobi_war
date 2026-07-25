@@ -48,6 +48,7 @@ export interface FireRedBattleArenaProps {
   connectionStatus: string;
   roomId: string | null;
   onAIOpponentAction?: () => void;
+  isPaused?: boolean;
 }
 
 export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
@@ -71,6 +72,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
   connectionStatus,
   roomId,
   onAIOpponentAction,
+  isPaused = false,
 }) => {
   // Local state for tracking clash animation active status & type
   const [clashState, setClashState] = useState<{
@@ -165,90 +167,91 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
 
   return (
     <div
-      className={`w-full max-w-6xl mx-auto flex flex-col my-2 select-none ${
+      className={`w-full max-w-5xl mx-auto flex flex-col my-1 select-none ${
         clashState.active ? 'animate-screen-shake' : ''
       }`}
     >
       {/* =========================================================================
-          TOP 70%: THE STAGE - VALLEY OF THE END (Shumatsu no Tani) 2D ARENA
+          TOP STAGE (65% HEIGHT): VALLEY OF THE END 2D BATTLE SCREEN
          ========================================================================= */}
-      <div className="w-full relative h-[500px] md:h-[540px] rounded-t-2xl overflow-hidden border-t-4 border-x-4 border-[#b45309] bg-gradient-to-b from-[#090d16] via-[#1a233a] to-[#0d1322] shadow-2xl">
-        {/* Background Sky & Valley Waterfall Gradient */}
+      <div className="w-full relative h-[360px] md:h-[400px] rounded-t-2xl overflow-hidden border-t-4 border-x-4 border-[#b45309] bg-gradient-to-b from-[#090d16] via-[#1a233a] to-[#0d1322] shadow-2xl">
+        {/* Background Sky Gradient */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/40 via-indigo-950/80 to-slate-950 pointer-events-none" />
-        <div className="absolute inset-0 scanline-bg opacity-20 pointer-events-none" />
+        <div className="absolute inset-0 scanline-bg opacity-15 pointer-events-none" />
 
-        {/* Valley of the End (終末の谷) Giant Stone Statues Backdrop */}
-        <div className="absolute top-0 inset-x-0 h-48 pointer-events-none flex items-end justify-between px-6 opacity-35">
-          {/* Hashirama Senju Statue (Left Cliff) */}
+        {/* BATTLE PAUSED OVERLAY WHEN PLAYER IS IN TRAINING MODE */}
+        {isPaused && (
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+            <div className="px-6 py-4 rounded-2xl bg-slate-900/90 border-2 border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.3)] flex flex-col items-center space-y-2 max-w-md">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 text-2xl animate-pulse">
+                ⏸️
+              </div>
+              <h2 className="text-xl font-black font-cinzel text-amber-300 tracking-wider">
+                BATTLE PAUSED
+              </h2>
+              <p className="text-xs text-slate-300 font-tech">
+                Player is currently practicing in <strong className="text-cyan-400">Training Mode</strong>. Return to the Arena tab to resume the battle!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Valley of the End Statue Silhouette Backdrop */}
+        <div className="absolute top-0 inset-x-0 h-32 pointer-events-none flex items-end justify-between px-10 opacity-30">
+          {/* Hashirama Statue */}
           <div className="flex flex-col items-center">
-            <svg width="100" height="120" viewBox="0 0 100 120" fill="currentColor" className="text-amber-100/60">
+            <svg width="70" height="80" viewBox="0 0 100 120" fill="currentColor" className="text-amber-100/60">
               <path d="M20 120 L30 40 Q50 10 70 40 L80 120 Z" />
               <circle cx="50" cy="30" r="16" />
-              <rect x="35" y="15" width="30" height="8" rx="2" />
             </svg>
-            <span className="text-[9px] font-mono font-bold text-amber-200 tracking-wider">初 代 (HASHIRAMA)</span>
           </div>
 
-          {/* Central Waterfall Cascade */}
-          <div className="w-20 h-44 bg-gradient-to-b from-cyan-400/20 via-blue-500/30 to-cyan-300/40 blur-sm animate-pulse rounded-b-full border-x border-cyan-300/20 flex items-center justify-center">
-            <span className="text-[10px] font-mono font-bold text-cyan-200 opacity-60">滝 (WATERFALL)</span>
-          </div>
+          {/* Central Waterfall */}
+          <div className="w-16 h-28 bg-gradient-to-b from-cyan-400/20 via-blue-500/30 to-cyan-300/40 blur-xs animate-pulse rounded-b-full border-x border-cyan-300/20" />
 
-          {/* Madara Uchiha Statue (Right Cliff) */}
+          {/* Madara Statue */}
           <div className="flex flex-col items-center">
-            <svg width="100" height="120" viewBox="0 0 100 120" fill="currentColor" className="text-amber-100/60">
+            <svg width="70" height="80" viewBox="0 0 100 120" fill="currentColor" className="text-amber-100/60">
               <path d="M15 120 L25 35 Q50 5 75 35 L85 120 Z" />
-              <path d="M25 30 C15 15 35 5 50 12 C65 5 85 15 75 30 Z" />
             </svg>
-            <span className="text-[9px] font-mono font-bold text-amber-200 tracking-wider">マ ダ ラ (MADARA)</span>
           </div>
         </div>
 
-        {/* Ninja Training Field Ground Terrain (Valley Lake & Forest Edge) */}
-        <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-[#14532d] via-[#166534]/70 to-transparent border-t border-amber-500/40" />
+        {/* Konoha Ninja Training Field Ground Terrain */}
+        <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-[#14532d] via-[#166534]/80 to-transparent border-t border-amber-500/30" />
 
-        {/* Kawarimi Substitution Log & Leaf Particles */}
-        <div className="absolute bottom-20 left-6 text-2xl opacity-70 pointer-events-none" title="Kawarimi Log">
+        {/* Kawarimi Substitution Log Decoration */}
+        <div className="absolute bottom-16 left-5 text-xl opacity-70 pointer-events-none">
           🪵
-        </div>
-        <div className="absolute top-36 left-1/4 text-xl opacity-50 pointer-events-none animate-bounce">
-          🍃
-        </div>
-        <div className="absolute top-28 right-1/3 text-lg opacity-40 pointer-events-none">
-          🍥
         </div>
 
         {/* -----------------------------------------------------------------------
             FLOATING NINJA SCROLL PANEL 1: OPPONENT STATUS BOX (TOP-LEFT)
            ----------------------------------------------------------------------- */}
-        <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 w-64 md:w-72 naruto-scroll-box p-3 animate-fade-in relative shadow-2xl">
-          {/* Scroll Handle Edges (Makimono Wood Ends) */}
-          <div className="absolute -left-3 top-0 bottom-0 w-3.5 bg-[#78350f] rounded-l-md border-2 border-[#451a03] shadow-md flex items-center justify-center">
-            <div className="w-1.5 h-full bg-[#3f1d0b] rounded-sm" />
-          </div>
-          <div className="absolute -right-3 top-0 bottom-0 w-3.5 bg-[#78350f] rounded-r-md border-2 border-[#451a03] shadow-md flex items-center justify-center">
-            <div className="w-1.5 h-full bg-[#3f1d0b] rounded-sm" />
-          </div>
+        <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20 w-68 md:w-76 naruto-scroll-box p-2.5 shadow-2xl animate-fade-in">
+          {/* Scroll Handle Wood Ends */}
+          <div className="absolute -left-2.5 top-0 bottom-0 w-2.5 bg-[#78350f] rounded-l border border-[#451a03] shadow-md" />
+          <div className="absolute -right-2.5 top-0 bottom-0 w-2.5 bg-[#78350f] rounded-r border border-[#451a03] shadow-md" />
 
-          <div className="flex items-center justify-between font-bold text-xs md:text-sm tracking-wide border-b border-amber-800/40 pb-1">
-            <span className="truncate font-mono uppercase text-amber-950 flex items-center gap-1.5 font-black">
-              <span className="text-sm">☁️</span>
-              {player2.name}
+          <div className="flex items-center justify-between font-bold text-xs tracking-wide border-b border-amber-800/40 pb-1 gap-2">
+            <span className="min-w-0 flex-1 font-mono uppercase text-amber-950 flex items-center gap-1 font-black truncate">
+              <span className="text-sm shrink-0">☁️</span>
+              <span className="truncate">{player2.name}</span>
             </span>
-            <span className="font-mono text-[11px] text-red-950 font-black bg-red-200/90 px-1.5 py-0.5 rounded border border-red-400">
+            <span className="shrink-0 whitespace-nowrap font-mono text-[10px] text-red-950 font-black bg-red-200/90 px-1.5 py-0.5 rounded border border-red-400">
               AKATSUKI • Lv.50
             </span>
           </div>
 
           {/* Opponent HP Bar */}
-          <div className="mt-2 space-y-0.5">
+          <div className="mt-1.5 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-red-900 flex items-center gap-1">
                 <Heart className="w-3 h-3 fill-red-700" /> 体 力 (HP)
               </span>
               <span>{Math.round(p2HpPercent)}%</span>
             </div>
-            <div className="w-full h-3.5 firered-hp-container">
+            <div className="w-full h-3 firered-hp-container">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${getHpBarClass(
                   player2.hp,
@@ -260,7 +263,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
           </div>
 
           {/* Opponent Chakra Bar */}
-          <div className="mt-1.5 space-y-0.5">
+          <div className="mt-1 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-blue-900 flex items-center gap-1">
                 <Zap className="w-3 h-3 fill-cyan-600" /> チャクラ (Chakra)
@@ -277,11 +280,11 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         </div>
 
         {/* -----------------------------------------------------------------------
-            OPPONENT AVATAR (TOP-RIGHT) - Akatsuki Rogue Shinobi Front Stance
+            OPPONENT AVATAR (TOP-RIGHT) - Akatsuki Rogue Shinobi Front View Stance
            ----------------------------------------------------------------------- */}
-        <div className="absolute top-16 right-8 md:top-14 md:right-20 z-10 flex flex-col items-center">
+        <div className="absolute top-12 right-6 md:top-10 md:right-16 z-10 flex flex-col items-center">
           {/* Opponent Battle Pedestal */}
-          <div className="w-44 h-16 md:w-56 md:h-20 battle-pedestal-opponent absolute -bottom-4 rounded-full border border-blue-400/30" />
+          <div className="w-40 h-14 md:w-48 md:h-16 battle-pedestal-opponent absolute -bottom-3 rounded-full border border-blue-400/30" />
 
           {/* Opponent Character Sprite */}
           <div
@@ -293,38 +296,36 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
                 : 'hover:scale-105'
             }`}
           >
-            {/* Front View Rogue Shinobi SVG with Sharingan & Akatsuki Clouds */}
+            {/* Front View Akatsuki Shinobi SVG Sprite */}
             <svg
-              width="135"
-              height="155"
+              width="120"
+              height="135"
               viewBox="0 0 100 120"
               fill="none"
-              className="drop-shadow-[0_12px_20px_rgba(0,0,0,0.9)]"
+              className="drop-shadow-[0_10px_18px_rgba(0,0,0,0.9)]"
             >
-              {/* Cloak & Collar */}
-              <path d="M18 115 L28 60 L50 50 L72 60 L82 115 Z" fill="#0f172a" stroke="#dc2626" strokeWidth="2" />
-              <path d="M35 60 Q50 75 65 60 L75 115 L25 115 Z" fill="#020617" />
-              {/* Akatsuki Red Cloud Motif */}
-              <path d="M42 85 Q50 78 58 85 Q64 92 50 95 Q36 92 42 85 Z" fill="#dc2626" stroke="#f87171" strokeWidth="1" />
-              {/* High Collar */}
-              <path d="M28 55 L50 42 L72 55 L62 68 L38 68 Z" fill="#7f1d1d" />
+              {/* Akatsuki Cloak Body */}
+              <path d="M20 115 L30 55 L50 48 L70 55 L80 115 Z" fill="#020617" stroke="#dc2626" strokeWidth="2" />
+              {/* Red Cloud Motif */}
+              <path d="M42 82 Q50 75 58 82 Q64 89 50 92 Q36 89 42 82 Z" fill="#dc2626" stroke="#f87171" strokeWidth="1" />
+              {/* Collar */}
+              <path d="M30 52 L50 40 L70 52 L60 64 L40 64 Z" fill="#7f1d1d" />
               {/* Face & Headband */}
-              <path d="M36 32 Q50 26 64 32 L62 52 Q50 58 38 52 Z" fill="#fca5a5" />
-              <rect x="32" y="28" width="36" height="10" rx="2" fill="#334155" />
-              <rect x="40" y="29" width="20" height="8" rx="1" fill="#94a3b8" />
-              {/* Crossed Leaf Symbol for Rogue Shinobi */}
-              <line x1="42" y1="33" x2="58" y2="33" stroke="#020617" strokeWidth="2" />
-              <line x1="42" y1="30" x2="58" y2="36" stroke="#dc2626" strokeWidth="1.5" />
+              <path d="M36 30 Q50 24 64 30 L62 48 Q50 54 38 48 Z" fill="#fca5a5" />
+              <rect x="33" y="26" width="34" height="9" rx="2" fill="#334155" />
+              <rect x="40" y="27" width="20" height="7" rx="1" fill="#94a3b8" />
+              {/* Slashing line across forehead protector */}
+              <line x1="42" y1="28" x2="58" y2="33" stroke="#dc2626" strokeWidth="1.5" />
               {/* Hair */}
-              <path d="M28 30 C22 18 32 12 38 20 C44 8 56 8 62 20 C68 12 78 18 72 30 Z" fill="#020617" />
-              {/* Sharingan Eyes (Red Tomoe Pupils) */}
-              <circle cx="43" cy="38" r="3.5" fill="#ef4444" className="animate-pulse" />
-              <circle cx="43" cy="38" r="1.2" fill="#020617" />
-              <circle cx="57" cy="38" r="3.5" fill="#ef4444" className="animate-pulse" />
-              <circle cx="57" cy="38" r="1.2" fill="#020617" />
+              <path d="M30 28 C24 16 34 10 40 18 C46 6 58 6 64 18 C70 10 80 16 74 28 Z" fill="#0f172a" />
+              {/* Sharingan Eyes */}
+              <circle cx="43" cy="36" r="3" fill="#ef4444" className="animate-pulse" />
+              <circle cx="43" cy="36" r="1" fill="#020617" />
+              <circle cx="57" cy="36" r="3" fill="#ef4444" className="animate-pulse" />
+              <circle cx="57" cy="36" r="1" fill="#020617" />
             </svg>
 
-            {/* Casting / Charging Red Aura Effect */}
+            {/* Red Charging Aura */}
             {player2.isChargingChakra && (
               <div className="absolute inset-0 bg-red-600/30 rounded-full blur-xl animate-ping pointer-events-none" />
             )}
@@ -332,7 +333,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         </div>
 
         {/* -----------------------------------------------------------------------
-            CENTER STAGE VISUAL CLASH & NINJUTSU ANIMATION LAYER
+            CENTER STAGE NINJUTSU CLASH ANIMATION LAYER
            ----------------------------------------------------------------------- */}
         <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center">
           {clashState.active && (
@@ -340,49 +341,49 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
               {/* Katon: Fireball Attack Animation */}
               {clashState.type === 'fireball' && (
                 <div className="animate-fireball flex flex-col items-center">
-                  <div className="text-8xl filter drop-shadow-[0_0_35px_#ff2e63]">🔥</div>
-                  <div className="w-28 h-28 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-yellow-300 blur-md animate-spin" />
+                  <div className="text-7xl filter drop-shadow-[0_0_30px_#ff2e63]">🔥</div>
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-yellow-300 blur-md animate-spin" />
                 </div>
               )}
 
               {/* Suiton: Water Dragon Animation */}
               {clashState.type === 'water' && (
                 <div className="animate-water-dragon flex flex-col items-center">
-                  <div className="text-8xl filter drop-shadow-[0_0_35px_#00f2fe]">🐉</div>
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-teal-300 blur-md animate-pulse" />
+                  <div className="text-7xl filter drop-shadow-[0_0_30px_#00f2fe]">🐉</div>
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-teal-300 blur-md animate-pulse" />
                 </div>
               )}
 
-              {/* Raikiri / Lightning Attack Animation */}
+              {/* Raikiri / Lightning Animation */}
               {clashState.type === 'lightning' && (
                 <div className="animate-clash-burst flex flex-col items-center">
-                  <div className="text-8xl filter drop-shadow-[0_0_35px_#9d4edd]">⚡</div>
-                  <div className="w-36 h-36 rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-300 blur-lg animate-ping" />
+                  <div className="text-7xl filter drop-shadow-[0_0_30px_#9d4edd]">⚡</div>
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-300 blur-lg animate-ping" />
                 </div>
               )}
 
-              {/* Rasengan / Swirling Chakra Orb Animation */}
+              {/* Rasengan Animation */}
               {clashState.type === 'rasengan' && (
                 <div className="animate-rasengan flex flex-col items-center">
-                  <div className="text-8xl filter drop-shadow-[0_0_40px_#00f2fe]">🌀</div>
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 blur-md animate-spin" />
+                  <div className="text-7xl filter drop-shadow-[0_0_35px_#00f2fe]">🌀</div>
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 blur-md animate-spin" />
                 </div>
               )}
 
               {/* Japanese Kanji Callout Banner */}
               {clashState.title && (
-                <div className="mt-4 px-6 py-2.5 rounded-2xl bg-black/95 border-2 border-amber-500 text-amber-300 font-extrabold text-sm md:text-lg font-cinzel shadow-2xl animate-bounce tracking-widest text-center">
-                  <span className="block text-xs font-mono text-amber-400 font-black uppercase">
+                <div className="mt-3 px-5 py-2 rounded-2xl bg-black/95 border-2 border-amber-500 text-amber-300 font-extrabold text-sm font-cinzel shadow-2xl animate-bounce tracking-widest text-center">
+                  <span className="block text-[11px] font-mono text-amber-400 font-black uppercase">
                     {clashState.kanji}
                   </span>
                   <span>{clashState.title}</span>
                   {clashState.japaneseName && (
-                    <span className="block text-xs font-mono text-amber-200/80 italic">
+                    <span className="block text-[10px] font-mono text-amber-200/80 italic">
                       {clashState.japaneseName}
                     </span>
                   )}
                   {clashState.damage && (
-                    <span className="block text-xs font-mono text-red-400 font-bold">
+                    <span className="block text-[10px] font-mono text-red-400 font-bold">
                       -{clashState.damage} HP DAMAGE!
                     </span>
                   )}
@@ -393,23 +394,23 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         </div>
 
         {/* -----------------------------------------------------------------------
-            WEBCAM / MEDIAPIPE PIP MONITOR OVERLAY
+            WEBCAM / MEDIAPIPE PIP MONITOR OVERLAY (BOTTOM-CENTER OF ARENA)
            ----------------------------------------------------------------------- */}
         {showWebcamPip && (
-          <div className="absolute top-4 right-4 md:right-1/2 md:translate-x-1/2 z-20 w-44 md:w-52 bg-slate-950/90 border-2 border-amber-500/60 rounded-xl p-1.5 shadow-2xl backdrop-blur-md transition-all">
-            <div className="flex items-center justify-between text-[10px] font-mono text-amber-300 px-1 mb-1">
-              <span className="flex items-center gap-1 font-bold">
-                <Camera className="w-3 h-3 text-amber-400" /> VISION MONITOR ({fps} FPS)
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 w-56 md:w-72 bg-slate-950/80 border-2 border-amber-500/80 rounded-2xl p-1.5 shadow-[0_0_25px_rgba(245,158,11,0.4)] backdrop-blur-md transition-all">
+            <div className="flex items-center justify-between text-[10px] font-mono text-amber-300 px-2 py-0.5 mb-1 bg-amber-950/60 rounded-lg border border-amber-600/40">
+              <span className="flex items-center gap-1.5 font-extrabold tracking-wider">
+                <Camera className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> VISION SENSOR ({fps} FPS)
               </span>
               <button
                 onClick={() => setShowWebcamPip(false)}
-                className="text-slate-400 hover:text-white font-bold"
+                className="text-amber-400 hover:text-white font-black px-1 text-xs"
                 title="Minimize PIP"
               >
                 ✕
               </button>
             </div>
-            <div className="relative aspect-video bg-black rounded-lg overflow-hidden border border-slate-800">
+            <div className="relative aspect-video bg-black/40 rounded-xl overflow-hidden border border-amber-500/30">
               <WebcamCanvasOverlay
                 videoRef={videoRef}
                 canvasRef={canvasRef}
@@ -427,20 +428,20 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         {!showWebcamPip && (
           <button
             onClick={() => setShowWebcamPip(true)}
-            className="absolute top-4 right-4 z-20 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-amber-500/50 text-amber-300 text-[10px] font-mono font-bold hover:bg-slate-800 transition flex items-center gap-1"
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-xl bg-slate-900/90 border border-amber-500/60 text-amber-300 text-xs font-mono font-bold hover:bg-slate-800 transition flex items-center gap-1.5 shadow-2xl"
           >
-            <Tv className="w-3 h-3 text-amber-400" /> Show Camera PIP
+            <Tv className="w-3.5 h-3.5 text-amber-400" /> Show Camera PIP
           </button>
         )}
 
         {/* -----------------------------------------------------------------------
-            PLAYER AVATAR (BOTTOM-LEFT) - Konoha Shinobi Back View Stance
+            PLAYER AVATAR (BOTTOM-LEFT) - Konoha Shinobi Back View Hero Stance
            ----------------------------------------------------------------------- */}
-        <div className="absolute bottom-6 left-8 md:bottom-8 md:left-20 z-10 flex flex-col items-center">
+        <div className="absolute bottom-4 left-6 md:bottom-6 md:left-14 z-10 flex flex-col items-center">
           {/* Player Battle Pedestal */}
-          <div className="w-52 h-20 md:w-64 md:h-24 battle-pedestal-player absolute -bottom-4 rounded-full border border-emerald-400/30" />
+          <div className="w-44 h-16 md:w-56 md:h-20 battle-pedestal-player absolute -bottom-3 rounded-full border border-emerald-400/30" />
 
-          {/* Player Character Sprite (Back View with Orange Jumpsuit Accents) */}
+          {/* Player Character Sprite */}
           <div
             className={`relative z-10 transition-transform duration-300 ${
               player1.activeStatus === 'HIT'
@@ -450,28 +451,28 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
                 : 'hover:scale-105'
             }`}
           >
-            {/* Back View Konoha Shinobi SVG Silhouette Art */}
+            {/* Clean Back View Konoha Shinobi SVG Hero Artwork */}
             <svg
-              width="155"
-              height="175"
+              width="135"
+              height="150"
               viewBox="0 0 100 120"
               fill="none"
-              className="drop-shadow-[0_12px_20px_rgba(0,0,0,0.9)]"
+              className="drop-shadow-[0_10px_18px_rgba(0,0,0,0.9)]"
             >
-              {/* Back Torso & Naruto Orange/Black Jacket */}
-              <path d="M15 115 L25 55 L50 48 L75 55 L85 115 Z" fill="#ea580c" stroke="#f97316" strokeWidth="1.5" />
-              {/* Konoha Jonin Flak Vest */}
-              <path d="M28 58 L50 52 L72 58 L78 95 L22 95 Z" fill="#15803d" stroke="#22c55e" strokeWidth="1.5" />
-              {/* Red Uzumaki Whirlpool Spiral Crest on Back */}
-              <circle cx="50" cy="76" r="8" fill="#dc2626" stroke="#ffffff" strokeWidth="1.5" />
+              {/* Naruto Orange/Black Jacket Back */}
+              <path d="M20 115 L30 55 L50 48 L70 55 L80 115 Z" fill="#ea580c" stroke="#f97316" strokeWidth="1.5" />
+              {/* Green Jonin Flak Vest */}
+              <path d="M30 58 L50 52 L70 58 L76 92 L24 92 Z" fill="#15803d" stroke="#22c55e" strokeWidth="1.5" />
+              {/* Red Uzumaki Whirlpool Spiral Crest */}
+              <circle cx="50" cy="74" r="7" fill="#dc2626" stroke="#ffffff" strokeWidth="1.5" />
               {/* Scroll Strap */}
-              <line x1="28" y1="62" x2="72" y2="92" stroke="#b45309" strokeWidth="3" />
+              <line x1="30" y1="62" x2="70" y2="90" stroke="#b45309" strokeWidth="2.5" />
               {/* Hair & Headband Ribbon Tail */}
-              <path d="M32 35 C25 22 35 15 42 22 C48 8 58 8 62 22 C68 15 78 22 72 35 Q50 42 32 35 Z" fill="#eab308" />
-              <rect x="34" y="32" width="32" height="7" rx="2" fill="#1d4ed8" />
-              {/* Blue Headband Ribbons Flowing in Wind */}
-              <path d="M62 35 Q75 42 84 38 L88 45 Q72 48 62 38 Z" fill="#1d4ed8" className="animate-pulse" />
-              <path d="M62 37 Q78 50 82 55 L76 58 Q68 48 62 39 Z" fill="#1e40af" />
+              <path d="M34 35 C28 22 36 15 44 22 C50 8 60 8 64 22 C70 15 78 22 72 35 Q50 42 34 35 Z" fill="#eab308" />
+              <rect x="36" y="32" width="28" height="7" rx="2" fill="#1d4ed8" />
+              {/* Flowing Blue Ribbon Tails */}
+              <path d="M60 35 Q72 42 80 38 L84 45 Q70 48 60 38 Z" fill="#1d4ed8" className="animate-pulse" />
+              <path d="M60 37 Q75 50 78 54 L72 57 Q66 48 60 39 Z" fill="#1e40af" />
             </svg>
 
             {/* Cyan Chakra Aura Pulse Effect */}
@@ -484,27 +485,23 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         {/* -----------------------------------------------------------------------
             FLOATING NINJA SCROLL PANEL 2: LOCAL PLAYER STATUS BOX (BOTTOM-RIGHT)
            ----------------------------------------------------------------------- */}
-        <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 z-20 w-64 md:w-72 naruto-scroll-box p-3 animate-fade-in relative shadow-2xl">
-          {/* Scroll Handle Edges */}
-          <div className="absolute -left-3 top-0 bottom-0 w-3.5 bg-[#78350f] rounded-l-md border-2 border-[#451a03] shadow-md flex items-center justify-center">
-            <div className="w-1.5 h-full bg-[#3f1d0b] rounded-sm" />
-          </div>
-          <div className="absolute -right-3 top-0 bottom-0 w-3.5 bg-[#78350f] rounded-r-md border-2 border-[#451a03] shadow-md flex items-center justify-center">
-            <div className="w-1.5 h-full bg-[#3f1d0b] rounded-sm" />
-          </div>
+        <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 z-20 w-68 md:w-76 naruto-scroll-box p-2.5 shadow-2xl animate-fade-in">
+          {/* Scroll Handle Wood Ends */}
+          <div className="absolute -left-2.5 top-0 bottom-0 w-2.5 bg-[#78350f] rounded-l border border-[#451a03] shadow-md" />
+          <div className="absolute -right-2.5 top-0 bottom-0 w-2.5 bg-[#78350f] rounded-r border border-[#451a03] shadow-md" />
 
-          <div className="flex items-center justify-between font-bold text-xs md:text-sm tracking-wide border-b border-amber-800/40 pb-1">
-            <span className="truncate font-mono uppercase text-amber-950 flex items-center gap-1.5 font-black">
-              <span className="text-sm">🍃</span>
-              {player1.name}
+          <div className="flex items-center justify-between font-bold text-xs tracking-wide border-b border-amber-800/40 pb-1 gap-2">
+            <span className="min-w-0 flex-1 font-mono uppercase text-amber-950 flex items-center gap-1 font-black truncate">
+              <span className="text-sm shrink-0">🍃</span>
+              <span className="truncate">{player1.name}</span>
             </span>
-            <span className="font-mono text-[11px] text-cyan-950 font-black bg-cyan-200/90 px-1.5 py-0.5 rounded border border-cyan-400">
+            <span className="shrink-0 whitespace-nowrap font-mono text-[10px] text-cyan-950 font-black bg-cyan-200/90 px-1.5 py-0.5 rounded border border-cyan-400">
               KONOHA • Lv.50
             </span>
           </div>
 
           {/* Local Player HP Bar */}
-          <div className="mt-2 space-y-0.5">
+          <div className="mt-1.5 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-red-900 flex items-center gap-1">
                 <Heart className="w-3 h-3 fill-red-700" /> 体 力 (HP)
@@ -513,7 +510,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
                 {player1.hp} / {player1.maxHp}
               </span>
             </div>
-            <div className="w-full h-3.5 firered-hp-container">
+            <div className="w-full h-3 firered-hp-container">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${getHpBarClass(
                   player1.hp,
@@ -525,7 +522,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
           </div>
 
           {/* Local Player Chakra Bar */}
-          <div className="mt-1.5 space-y-0.5">
+          <div className="mt-1 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-blue-900 flex items-center gap-1">
                 <Zap className="w-3 h-3 fill-cyan-600" /> チャクラ (Chakra)
@@ -545,16 +542,16 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
       </div>
 
       {/* =========================================================================
-          BOTTOM 30%: MASTER NINJA SCROLL UI CONSOLE (Naruto Bordered Aesthetic)
+          BOTTOM CONSOLE: MASTER NINJA SCROLL UI (Hand Sign Streams & Seals)
          ========================================================================= */}
-      <div className="w-full naruto-scroll-box p-4 md:p-5 flex flex-col space-y-4 rounded-b-2xl border-b-4 border-x-4 border-[#b45309] relative shadow-2xl">
+      <div className="w-full naruto-scroll-box p-3 md:p-4 flex flex-col space-y-3 rounded-b-2xl border-b-4 border-x-4 border-[#b45309] shadow-2xl">
         {/* Retro Ninja Scroll Prompt Box */}
-        <div className="w-full p-2.5 rounded-lg bg-[#271003] border-2 border-[#b45309] text-amber-200 font-mono text-xs md:text-sm flex items-center justify-between gap-2 shadow-inner">
-          <div className="flex items-center gap-2">
+        <div className="w-full p-2 rounded-lg bg-[#271003] border-2 border-[#b45309] text-amber-200 font-mono text-xs flex items-center justify-between gap-2 shadow-inner">
+          <div className="flex items-center gap-2 truncate">
             <Scroll className="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
-            <p className="font-semibold">{battleMessage}</p>
+            <p className="font-semibold truncate">{battleMessage}</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0 text-[11px]">
+          <div className="flex items-center gap-2 shrink-0 text-[10px]">
             <span className="px-2 py-0.5 rounded bg-amber-950 border border-amber-600/50 text-amber-300 font-bold">
               {connectionStatus === 'CONNECTED' ? `P2P MATCH (${roomId})` : 'SOLO / AI MATCH'}
             </span>
@@ -564,9 +561,9 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         {/* -----------------------------------------------------------------------
             HAND SIGN STREAMS: 'MY SIGNS' AND 'ENEMY SIGNS'
            ----------------------------------------------------------------------- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* Stream 1: MY SIGNS (Local Player Hand Sign Stream) */}
-          <div className="flex flex-col space-y-1.5 p-3 rounded-xl bg-slate-950/90 border border-cyan-500/40 shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {/* Stream 1: MY SIGNS */}
+          <div className="flex flex-col space-y-1 p-2.5 rounded-xl bg-slate-950/90 border border-cyan-500/40 shadow-md">
             <div className="flex items-center justify-between text-xs font-mono font-bold text-cyan-300">
               <span className="flex items-center gap-1.5 font-black">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
@@ -582,14 +579,14 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
               )}
             </div>
 
-            <div className="min-h-[60px] w-full p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2 overflow-x-auto">
+            <div className="min-h-[52px] w-full p-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 overflow-x-auto">
               {localSequence.length === 0 ? (
-                <span className="text-slate-500 text-xs font-mono italic">
-                  No seals weaved yet. Click seals below or use camera!
+                <span className="text-slate-500 text-[11px] font-mono italic">
+                  Weave seals with keys 1-9, Q, W, E or vision camera!
                 </span>
               ) : (
                 localSequence.map((item, idx) => (
-                  <div key={item.id || idx} className="flex items-center gap-1.5 shrink-0 animate-scale-in">
+                  <div key={item.id || idx} className="flex items-center gap-1 shrink-0 animate-scale-in">
                     <SealBadge sealType={item.type} index={idx} isActive={true} />
                     {idx < localSequence.length - 1 && (
                       <span className="text-cyan-500 font-bold text-xs">→</span>
@@ -600,8 +597,8 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
             </div>
           </div>
 
-          {/* Stream 2: ENEMY SIGNS (Opponent Hand Sign Stream) */}
-          <div className="flex flex-col space-y-1.5 p-3 rounded-xl bg-slate-950/90 border border-red-500/40 shadow-md">
+          {/* Stream 2: ENEMY SIGNS */}
+          <div className="flex flex-col space-y-1 p-2.5 rounded-xl bg-slate-950/90 border border-red-500/40 shadow-md">
             <div className="flex items-center justify-between text-xs font-mono font-bold text-red-300">
               <span className="flex items-center gap-1.5 font-black">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
@@ -616,14 +613,14 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
               </button>
             </div>
 
-            <div className="min-h-[60px] w-full p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2 overflow-x-auto">
+            <div className="min-h-[52px] w-full p-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 overflow-x-auto">
               {opponentSequence.length === 0 ? (
-                <span className="text-slate-500 text-xs font-mono italic">
+                <span className="text-slate-500 text-[11px] font-mono italic">
                   Awaiting enemy hand seal signals over DataChannel...
                 </span>
               ) : (
                 opponentSequence.map((item, idx) => (
-                  <div key={item.id || idx} className="flex items-center gap-1.5 shrink-0 animate-scale-in">
+                  <div key={item.id || idx} className="flex items-center gap-1 shrink-0 animate-scale-in">
                     <SealBadge sealType={item.type} index={idx} isActive={true} />
                     {idx < opponentSequence.length - 1 && (
                       <span className="text-red-500 font-bold text-xs">→</span>
@@ -638,28 +635,28 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         {/* -----------------------------------------------------------------------
             ACTION & ZODIAC HAND SEAL PALETTE CONTROLS
            ----------------------------------------------------------------------- */}
-        <div className="space-y-2 pt-1 border-t border-amber-900/40">
-          <div className="flex items-center justify-between flex-wrap gap-2 text-[11px] font-mono font-bold text-amber-950">
+        <div className="space-y-1.5 pt-1 border-t border-amber-900/40">
+          <div className="flex items-center justify-between flex-wrap gap-2 text-[10px] font-mono font-bold text-amber-950">
             <span>十二支印 (Zodiac Hand Seals - Click or Press 1-9, Q, W, E):</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onChargeChakra('p1')}
-                className="px-3 py-1 rounded-lg bg-gradient-to-r from-cyan-700 to-blue-700 hover:from-cyan-600 hover:to-blue-600 text-white font-extrabold text-xs shadow-md border border-cyan-400/40 transition flex items-center gap-1 active:scale-95"
+                className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-700 to-blue-700 hover:from-cyan-600 hover:to-blue-600 text-white font-extrabold text-[11px] shadow-md border border-cyan-400/40 transition flex items-center gap-1 active:scale-95"
               >
-                <Zap className="w-3.5 h-3.5 fill-cyan-300" /> Charge Chakra (+25)
+                <Zap className="w-3 h-3 fill-cyan-300" /> Charge Chakra (+25)
               </button>
 
               <button
                 onClick={onOpenJutsuLibrary}
-                className="px-3 py-1 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-200 font-extrabold text-xs border border-purple-500/40 transition flex items-center gap-1 active:scale-95"
+                className="px-2.5 py-1 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-200 font-extrabold text-[11px] border border-purple-500/40 transition flex items-center gap-1 active:scale-95"
               >
-                <BookOpen className="w-3.5 h-3.5 text-purple-400" /> Ninjutsu Scroll
+                <BookOpen className="w-3 h-3 text-purple-400" /> Ninjutsu Scroll
               </button>
             </div>
           </div>
 
           {/* 12 Zodiac Seals Grid Selector */}
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-1.5">
+          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-1">
             {allSealTypes.map((sealType) => (
               <SealBadge
                 key={sealType}
