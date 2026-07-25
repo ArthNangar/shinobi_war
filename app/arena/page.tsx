@@ -433,6 +433,67 @@ export default function ShinobiBattleArenaPage() {
           </div>
         </header>
 
+        {/* Connection Status Notification Banner */}
+        {connectionStatus === 'CONNECTED' && (
+          <div className="w-full p-2.5 rounded-xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 text-xs font-mono font-bold flex items-center justify-between shadow-lg shadow-emerald-950/50 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>⚡ P2P WEBRTC CONNECTED! Room: <strong className="text-emerald-300">{roomId}</strong> • Realtime Battle Live!</span>
+            </div>
+            <button
+              onClick={() => disconnectRoom()}
+              className="px-2 py-0.5 rounded bg-emerald-900/80 hover:bg-emerald-800 text-[11px] text-emerald-100 border border-emerald-600/50"
+            >
+              Disconnect
+            </button>
+          </div>
+        )}
+
+        {connectionStatus === 'CONNECTING' && (
+          <div className="w-full p-2.5 rounded-xl bg-amber-950/90 border border-amber-500/50 text-amber-200 text-xs font-mono font-bold flex items-center justify-between shadow-lg shadow-amber-950/50 animate-pulse">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <span>🌐 CONNECTING TO ROOM <strong className="text-amber-300">{customRoomInput || 'room-leaf-01'}</strong>... Waiting for opponent...</span>
+            </div>
+            <button
+              onClick={() => disconnectRoom()}
+              className="px-2 py-0.5 rounded bg-amber-900/80 hover:bg-amber-800 text-[11px] text-amber-100 border border-amber-600/50"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {connectionStatus === 'RECONNECTING' && (
+          <div className="w-full p-2.5 rounded-xl bg-amber-950/90 border border-amber-500/50 text-amber-200 text-xs font-mono font-bold flex items-center justify-between shadow-lg shadow-amber-950/50 animate-pulse">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <span>🔄 RECONNECTING WEBRTC DATACHANNEL... Please wait...</span>
+            </div>
+            <button
+              onClick={() => disconnectRoom()}
+              className="px-2 py-0.5 rounded bg-amber-900/80 hover:bg-amber-800 text-[11px] text-amber-100 border border-amber-600/50"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {connectionStatus === 'FAILED' && (
+          <div className="w-full p-2.5 rounded-xl bg-red-950/90 border border-red-500/50 text-red-200 text-xs font-mono font-bold flex items-center justify-between shadow-lg shadow-red-950/50">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+              <span>⚠️ WEBRTC CONNECTION FAILED. Check room code or host a new match.</span>
+            </div>
+            <button
+              onClick={() => createRoom(customRoomInput || 'room-leaf-01')}
+              className="px-2 py-0.5 rounded bg-red-900/80 hover:bg-red-800 text-[11px] text-red-100 border border-red-600/50"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Tab Navigation System */}
         <nav className="w-full flex items-center p-1 rounded-xl bg-slate-950/80 border border-slate-800/80 backdrop-blur-md gap-2">
           <button
