@@ -93,6 +93,8 @@ export class WebRTCNetworkManager {
   }
 
   private pendingIceCandidates: RTCIceCandidateInit[] = [];
+  private hasProcessedOffer: boolean = false;
+  private hasProcessedAnswer: boolean = false;
 
   /**
    * Host / Create Room: Initiates WebRTC Offer & DataChannel creation
@@ -100,6 +102,8 @@ export class WebRTCNetworkManager {
   public async createRoom(roomId: string): Promise<void> {
     this.currentRoomId = roomId;
     this.isHost = true;
+    this.hasProcessedAnswer = false;
+    this.hasProcessedOffer = false;
     this.setStatus('CONNECTING');
     this.signaling.reset();
     this.signaling.clearRoom(roomId);
@@ -115,7 +119,7 @@ export class WebRTCNetworkManager {
     });
     this.bindDataChannelEvents(this.dataChannel);
 
-    // Create & Send SDP Offer via Firebase RTDB
+    // Create & Send SDP Offer via Firebase RTDB / Local Signaling
     try {
       const offer = await this.peerConnection.createOffer();
       await this.peerConnection.setLocalDescription(offer);
@@ -124,14 +128,22 @@ export class WebRTCNetworkManager {
       // Listen for SDP Answer from joiner
       this.signaling.onAnswer(roomId, async (answerPayload: SignalingAnswer) => {
         if (answerPayload.senderId === this.localPeerId) return;
-        if (this.peerConnection?.signalingState !== 'stable') {
-          const remoteDesc = new RTCSessionDescription({
-            type: 'answer',
-            sdp: answerPayload.sdp,
-          });
-          await this.peerConnection?.setRemoteDescription(remoteDesc);
-          console.log('[WebRTC Network] Remote answer set successfully.');
-          await this.flushPendingIceCandidates();
+        if (this.hasProcessedAnswer) return;
+
+        if (this.peerConnection && (this.peerConnection.signalingState === 'have-local-offer' || this.peerConnection.signalingState !== 'stable')) {
+          this.hasProcessedAnswer = true;
+          try {
+            const remoteDesc = new RTCSessionDescription({
+              type: 'answer',
+              sdp: answerPayload.sdp,
+            });
+            await this.peerConnection.setRemoteDescription(remoteDesc);
+            console.log('[WebRTC Network] Remote answer set successfully.');
+            await this.flushPendingIceCandidates();
+          } catch (e) {
+            console.error('[WebRTC Network] Error setting remote answer:', e);
+            this.hasProcessedAnswer = false;
+          }
         }
       });
 
@@ -151,9 +163,11 @@ export class WebRTCNetworkManager {
   public async joinRoom(roomId: string): Promise<void> {
     this.currentRoomId = roomId;
     this.isHost = false;
+    this.hasProcessedOffer = false;
+    this.hasProcessedAnswer = false;
     this.setStatus('CONNECTING');
     this.signaling.reset();
-    this.signaling.clearRoom(roomId);
+    // NOTE: Do NOT call clearRoom here as joiner, so host's offer is preserved!
     this.pendingIceCandidates = [];
 
     this.initPeerConnection();
@@ -171,27 +185,32 @@ export class WebRTCNetworkManager {
     this.signaling.onOffer(roomId, async (offerPayload: SignalingOffer) => {
       if (offerPayload.senderId === this.localPeerId) return;
       if (!this.peerConnection) return;
+      if (this.hasProcessedOffer) return;
 
-      try {
-        const remoteDesc = new RTCSessionDescription({
-          type: 'offer',
-          sdp: offerPayload.sdp,
-        });
-        await this.peerConnection.setRemoteDescription(remoteDesc);
-        await this.flushPendingIceCandidates();
+      if (this.peerConnection.signalingState === 'stable' || this.peerConnection.signalingState === 'have-local-offer') {
+        this.hasProcessedOffer = true;
+        try {
+          const remoteDesc = new RTCSessionDescription({
+            type: 'offer',
+            sdp: offerPayload.sdp,
+          });
+          await this.peerConnection.setRemoteDescription(remoteDesc);
+          await this.flushPendingIceCandidates();
 
-        const answer = await this.peerConnection.createAnswer();
-        await this.peerConnection.setLocalDescription(answer);
+          const answer = await this.peerConnection.createAnswer();
+          await this.peerConnection.setLocalDescription(answer);
 
-        await this.signaling.sendAnswer(roomId, answer, this.localPeerId);
+          await this.signaling.sendAnswer(roomId, answer, this.localPeerId);
 
-        // Listen for remote ICE candidates from host
-        this.signaling.onIceCandidates(roomId, true, async (candidateInit) => {
-          await this.addOrQueueCandidate(candidateInit);
-        });
-      } catch (err) {
-        console.error('[WebRTC Network] Error joining room:', err);
-        this.handleConnectionLoss();
+          // Listen for remote ICE candidates from host
+          this.signaling.onIceCandidates(roomId, true, async (candidateInit) => {
+            await this.addOrQueueCandidate(candidateInit);
+          });
+        } catch (err) {
+          console.error('[WebRTC Network] Error joining room:', err);
+          this.hasProcessedOffer = false;
+          this.handleConnectionLoss();
+        }
       }
     });
   }

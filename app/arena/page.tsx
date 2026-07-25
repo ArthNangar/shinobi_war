@@ -381,13 +381,15 @@ export default function ShinobiBattleArenaPage() {
               />
               <button
                 onClick={() =>
-                  connectionStatus === 'CONNECTED'
+                  connectionStatus === 'CONNECTED' || connectionStatus === 'CONNECTING' || connectionStatus === 'RECONNECTING'
                     ? disconnectRoom()
                     : createRoom(customRoomInput || 'room-leaf-01')
                 }
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   connectionStatus === 'CONNECTED'
                     ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300'
+                    : connectionStatus === 'CONNECTING' || connectionStatus === 'RECONNECTING'
+                    ? 'bg-amber-950/80 border border-amber-500/50 text-amber-300 hover:bg-amber-900/80'
                     : 'bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/30'
                 }`}
               >
@@ -396,12 +398,14 @@ export default function ShinobiBattleArenaPage() {
                   {connectionStatus === 'CONNECTED'
                     ? `P2P LIVE (${roomId})`
                     : connectionStatus === 'CONNECTING'
-                    ? 'Connecting...'
+                    ? 'Cancel Connecting...'
+                    : connectionStatus === 'RECONNECTING'
+                    ? 'Cancel Reconnecting...'
                     : 'Host Match'}
                 </span>
               </button>
 
-              {connectionStatus === 'DISCONNECTED' && (
+              {(connectionStatus === 'DISCONNECTED' || connectionStatus === 'FAILED') && (
                 <button
                   onClick={() => joinRoom(customRoomInput || 'room-leaf-01')}
                   className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-600"
