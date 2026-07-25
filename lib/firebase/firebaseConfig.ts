@@ -120,7 +120,7 @@ export class FirebaseSignalingClient {
     throw new Error(`[Firebase RTDB] Request failed after ${maxRetries} backoff attempts.`);
   }
 
-  // Clear room signaling data from localStorage & local listeners to prevent stale handshake pollution
+  // Clear room signaling data from localStorage, local listeners & signaling API
   clearRoom(roomId: string): void {
     const normalizedRoom = roomId.replace(/^\//, '');
     if (typeof window !== 'undefined') {
@@ -134,9 +134,17 @@ export class FirebaseSignalingClient {
         keysToRemove.forEach((key) => localStorage.removeItem(key));
       } catch (_) {}
     }
+
+    try {
+      fetch('/api/signaling', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear', path: `rooms/${normalizedRoom}` }),
+      }).catch(() => {});
+    } catch (_) {}
   }
 
-  // Set data at specific RTDB path with exponential backoff & local broadcast fallback
+  // Set data at specific path (Next.js Signaling API + LocalStorage + RTDB)
   async set(path: string, data: any): Promise<void> {
     const normalized = path.replace(/^\//, '');
 
@@ -149,20 +157,31 @@ export class FirebaseSignalingClient {
       } catch (_) {}
     }
 
-    // 2. Sync remotely to Firebase RTDB for cross-network device connection
-    const url = `${this.databaseUrl}/${normalized}.json`;
+    // 2. Sync to Next.js local signaling API (works across Incognito, different browsers & devices)
     try {
-      await this.fetchWithBackoff(url, {
-        method: 'PUT',
+      await fetch('/api/signaling', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ action: 'set', path: normalized, data }),
       });
-    } catch (err) {
-      console.warn(`[Firebase RTDB Set Warning] Remote sync for '${normalized}' restricted or offline. Local signaling active.`);
+    } catch (_) {}
+
+    // 3. Remote RTDB fallback if valid URL configured
+    if (this.databaseUrl && !this.databaseUrl.includes('shinobi-seals-default-rtdb')) {
+      const url = `${this.databaseUrl}/${normalized}.json`;
+      try {
+        await this.fetchWithBackoff(url, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } catch (err) {
+        console.warn(`[Firebase RTDB Set Warning] Remote sync for '${normalized}' restricted or offline.`);
+      }
     }
   }
 
-  // Push item into RTDB array/list with exponential backoff & local fallback
+  // Push item into array/list (Next.js Signaling API + LocalStorage + RTDB)
   async push(path: string, data: any): Promise<string | null> {
     const normalized = path.replace(/^\//, '');
     const pushKey = `node_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -179,26 +198,64 @@ export class FirebaseSignalingClient {
       } catch (_) {}
     }
 
-    // 2. Remote RTDB push
-    const url = `${this.databaseUrl}/${normalized}.json`;
+    // 2. Sync to Next.js local signaling API
     try {
-      const res = await this.fetchWithBackoff(url, {
+      const res = await fetch('/api/signaling', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ action: 'push', path: normalized, data }),
       });
       const resData = await res.json();
-      return resData?.name || pushKey;
-    } catch (err) {
-      return pushKey;
+      if (resData?.key) return resData.key;
+    } catch (_) {}
+
+    // 3. Sync remotely to Firebase RTDB if configured
+    if (this.databaseUrl && !this.databaseUrl.includes('shinobi-seals-default-rtdb')) {
+      const url = `${this.databaseUrl}/${normalized}.json`;
+      try {
+        const res = await this.fetchWithBackoff(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const resData = await res.json();
+        if (resData?.name) return resData.name;
+      } catch (_) {}
     }
+
+    return pushKey;
   }
 
-  // Get data from RTDB path or local storage fallback
+  // Get data from Next.js signaling API, Remote Firebase RTDB, or local storage fallback
   async get(path: string): Promise<any> {
     const normalized = path.replace(/^\//, '');
 
-    // Try local storage first if available
+    // 1. Try Next.js local signaling API first
+    try {
+      const res = await fetch(`/api/signaling?path=${encodeURIComponent(normalized)}`, { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data !== null && json.data !== undefined) {
+          return json.data;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Try Remote Firebase RTDB if configured
+    if (this.databaseUrl && !this.databaseUrl.includes('shinobi-seals-default-rtdb')) {
+      const url = `${this.databaseUrl}/${normalized}.json`;
+      try {
+        const res = await this.fetchWithBackoff(url, { method: 'GET' });
+        if (res.ok) {
+          const remoteData = await res.json();
+          if (remoteData !== null && remoteData !== undefined) {
+            return remoteData;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 3. Local storage fallback
     if (typeof window !== 'undefined') {
       try {
         const raw = localStorage.getItem(`shinobi_sig_${normalized}`);
@@ -208,14 +265,7 @@ export class FirebaseSignalingClient {
       } catch (_) {}
     }
 
-    const url = `${this.databaseUrl}/${normalized}.json`;
-    try {
-      const res = await this.fetchWithBackoff(url, { method: 'GET' });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch (err) {
-      return null;
-    }
+    return null;
   }
 
   // Subscribe to real-time changes at path using local channel, SSE, or polling
@@ -230,62 +280,28 @@ export class FirebaseSignalingClient {
     }
     this.localListeners.get(normalizedPath)!.add(callback);
 
-    // Initial local value check
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem(`shinobi_sig_${normalizedPath}`);
-        if (raw) {
-          callback(JSON.parse(raw));
-        }
-      } catch (_) {}
-    }
+    // Initial value check from server API / local storage
+    this.get(normalizedPath).then((initialData) => {
+      if (initialData !== null && initialData !== undefined && !this.isClosed) {
+        callback(initialData);
+      }
+    });
 
-    const url = `${this.databaseUrl}/${normalizedPath}.json`;
-
-    // Try EventSource (SSE) if supported in browser environment
-    if (typeof window !== 'undefined' && typeof window.EventSource !== 'undefined') {
-      try {
-        const eventSource = new EventSource(url);
-        
-        eventSource.addEventListener('put', (e: MessageEvent) => {
-          try {
-            const parsed = JSON.parse(e.data);
-            if (parsed && parsed.data !== undefined) {
-              callback(parsed.data);
-            }
-          } catch (_) {}
-        });
-
-        eventSource.addEventListener('patch', (e: MessageEvent) => {
-          try {
-            const parsed = JSON.parse(e.data);
-            if (parsed && parsed.data !== undefined) {
-              callback(parsed.data);
-            }
-          } catch (_) {}
-        });
-
-        eventSource.onerror = () => {};
-
-        this.activeEventSources.set(normalizedPath, eventSource);
-      } catch (_) {}
-    }
-
-    // Adaptive Polling backup
+    // Adaptive Polling backup (500ms interval for ultra-fast handshake)
     let lastHash = '';
     
     const pollId = setInterval(async () => {
       if (this.isClosed) return;
 
       const currentData = await this.get(normalizedPath);
-      if (currentData !== null) {
+      if (currentData !== null && currentData !== undefined) {
         const currentHash = JSON.stringify(currentData);
         if (currentHash !== lastHash) {
           lastHash = currentHash;
           callback(currentData);
         }
       }
-    }, 1000);
+    }, 500);
 
     this.pollIntervals.set(normalizedPath, pollId);
 
