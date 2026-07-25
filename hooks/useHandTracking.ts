@@ -51,7 +51,12 @@ export function useHandTracking(onFrame?: (label: string, confidence: number) =>
           videoRef.current,
           canvasRef.current
         );
-      } else if (canvasRef.current) {
+      }
+      
+      if (videoRef.current) {
+        pipelineRef.current.attachVideoElement(videoRef.current);
+      }
+      if (canvasRef.current) {
         pipelineRef.current.attachCanvas(canvasRef.current);
       }
 
@@ -203,6 +208,18 @@ export function useHandTracking(onFrame?: (label: string, confidence: number) =>
     animId = requestAnimationFrame(renderSimulation);
     return () => cancelAnimationFrame(animId);
   }, [isCameraActive, isSimulatedMode]);
+
+  // Automatically re-bind video and canvas DOM elements whenever active or when components switch tabs/sub-tabs
+  useEffect(() => {
+    if (isCameraActive && pipelineRef.current) {
+      if (videoRef.current) {
+        pipelineRef.current.attachVideoElement(videoRef.current);
+      }
+      if (canvasRef.current) {
+        pipelineRef.current.attachCanvas(canvasRef.current);
+      }
+    }
+  });
 
   // Cleanup on unmount
   useEffect(() => {

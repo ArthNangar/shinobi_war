@@ -10,6 +10,7 @@ import { SignMasteredModal } from './SignMasteredModal';
 import { JutsuComboSelector } from './JutsuComboSelector';
 import { JutsuComboCard } from './JutsuComboCard';
 import { JutsuComboCameraOverlay } from './JutsuComboCameraOverlay';
+import { MasterSealsGuideModal } from './MasterSealsGuideModal';
 import { PredictionResult } from '@/lib/vision';
 import { Target, Zap, Sparkles } from 'lucide-react';
 
@@ -36,6 +37,7 @@ export const TrainingMode: React.FC<TrainingModeProps> = ({
 }) => {
   // Sub-Navigation Tab State: 'basic' | 'combos'
   const [subTab, setSubTab] = useState<'basic' | 'combos'>('basic');
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // Tab 1: Basic Signs Training Hook State
   const {
@@ -122,11 +124,12 @@ export const TrainingMode: React.FC<TrainingModeProps> = ({
       {/* SUB-TAB 1: BASIC HAND SIGNS PRACTICE */}
       {subTab === 'basic' ? (
         <>
-          {/* Top Selectable 12 Zodiac Signs Library Grid */}
+          {/* Top Selectable 12 Zodiac Hand Signs Grid Selector */}
           <HandSignSelector
             selectedSignKey={selectedSignKey}
             masteredSigns={masteredSigns}
             onSelectSign={selectSign}
+            onOpenMasterGuide={() => setIsGuideOpen(true)}
           />
 
           {/* Main Split-Screen Reference & Camera Feed Layout */}
@@ -208,6 +211,15 @@ export const TrainingMode: React.FC<TrainingModeProps> = ({
           </div>
         </>
       )}
+
+      {/* Interactive Master Tutorial Guide Chart Modal */}
+      <MasterSealsGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        selectedSeal={selectedSignKey}
+        onSelectSeal={selectSign}
+        masteredSigns={masteredSigns}
+      />
     </div>
   );
 };

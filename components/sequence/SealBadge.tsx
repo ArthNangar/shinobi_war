@@ -41,10 +41,9 @@ export const SealBadge: React.FC<SealBadgeProps> = ({
         style={{ backgroundColor: seal.color }}
       />
 
-      {/* Symbol & Kanji */}
-      <div className="flex items-center gap-1">
+      {/* Symbol */}
+      <div className="flex items-center justify-center">
         <span className="text-xl md:text-2xl">{seal.symbol}</span>
-        <span className="text-xs font-bold text-slate-300 font-cinzel">{seal.kanji}</span>
       </div>
 
       {/* Seal Name */}

@@ -4,6 +4,7 @@ import React from 'react';
 import { HandSealReferenceDetail } from '@/types/shinobi';
 import { Flame, Shield, BookOpen, Layers, Award } from 'lucide-react';
 import { HandSignIllustration } from './HandSignIllustration';
+import { HandSignReferenceImage } from './HandSignReferenceImage';
 
 interface HandSignCardProps {
   seal: HandSealReferenceDetail;
@@ -31,9 +32,6 @@ export const HandSignCard: React.FC<HandSignCardProps> = ({ seal, isMastered }) 
             }}
           >
             {seal.symbol}
-            <span className="absolute -bottom-1 -right-1 text-xs font-cinzel font-black px-1.5 py-0.5 rounded bg-black/80 border border-slate-700 text-amber-300">
-              {seal.kanji}
-            </span>
           </div>
 
           <div>
@@ -78,21 +76,18 @@ export const HandSignCard: React.FC<HandSignCardProps> = ({ seal, isMastered }) 
           style={{ backgroundColor: seal.color }}
         />
 
-        {/* LEFT SIDE: PROPER HAND SIGN IMAGE ILLUSTRATION */}
-        <div className="relative shrink-0 flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-2xl group-hover:border-cyan-400/60 transition-all duration-300">
-          {/* Hand Sign Illustration */}
-          <HandSignIllustration
+        {/* LEFT SIDE: OFFICIAL ANIME REFERENCE IMAGE & HAND STRUCTURE */}
+        <div className="relative shrink-0 flex flex-row md:flex-col items-center justify-center gap-3 p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-2xl group-hover:border-cyan-400/60 transition-all duration-300">
+          {/* Official Anime Reference Image Crop */}
+          <HandSignReferenceImage
             sealType={seal.type}
-            color={seal.color}
-            size="lg"
-            className="transform group-hover:scale-105 transition-transform duration-300"
+            className="w-36 h-36 md:w-44 md:h-44"
           />
 
-          {/* Seal Kanji & Symbol Badge */}
-          <div className="mt-2 flex items-center gap-2 px-3 py-1 rounded-xl bg-black/80 border border-slate-700">
+          {/* Seal Symbol Badge */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-black/80 border border-slate-700">
             <span className="text-xl">{seal.symbol}</span>
-            <span className="text-sm font-black font-cinzel text-amber-300">{seal.kanji}</span>
-            <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase">SEAL FORM</span>
+            <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase">OFFICIAL TUTORIAL FORM</span>
           </div>
         </div>
 

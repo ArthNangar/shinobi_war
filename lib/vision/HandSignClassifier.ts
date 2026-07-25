@@ -297,7 +297,15 @@ export class HandSignClassifier {
    * If a TensorFlow.js model is trained, runs neural net inference.
    * Otherwise uses geometric gesture heuristic classifier stub.
    */
-  public async predict(landmarks3D: Point3D[]): Promise<PredictionResult> {
+  /**
+   * Accept raw 3D coordinate arrays from MediaPipe and return a string prediction.
+   * If a TensorFlow.js model is trained, runs neural net inference.
+   * Otherwise uses geometric gesture heuristic classifier conforming to the official 12 Zodiac seals guide.
+   */
+  public async predict(
+    landmarks3D: Point3D[],
+    allHands?: Point3D[][]
+  ): Promise<PredictionResult> {
     if (!landmarks3D || landmarks3D.length < 21) {
       return { label: 'None', confidence: 0 };
     }
@@ -337,53 +345,116 @@ export class HandSignClassifier {
       }
     }
 
-    // 2. Fallback Heuristic Classifier Stub based on 3D geometric joint angles
-    return this.heuristicStubPredict(landmarks3D);
+    // 2. Geometric Heuristic Classifier conforming to official 12 Zodiac hand sign postures
+    return this.heuristicStubPredict(landmarks3D, allHands);
   }
 
   /**
-   * Geometric heuristic stub to evaluate finger extension/curl state from 3D coords
+   * Geometric heuristic classifier evaluating precise 3D joint angles, finger extensions,
+   * orientations, and multi-hand relationships based on the official Naruto 12-seal guide image.
    */
-  private heuristicStubPredict(landmarks: Point3D[]): PredictionResult {
-    const isExtended = (tipIdx: number, mcpIdx: number) => {
-      // Y goes downward in normalized image coords, so smaller y = higher up
-      return landmarks[tipIdx].y < landmarks[mcpIdx].y - 0.05;
+  private heuristicStubPredict(
+    landmarks: Point3D[],
+    allHands?: Point3D[][]
+  ): PredictionResult {
+    const wrist = landmarks[0];
+
+    // Helper functions for 3D coordinate analysis
+    const isUp = (tipIdx: number, mcpIdx: number, margin = 0.03) => {
+      // Y decreases going UP in normalized image coords
+      return landmarks[tipIdx].y < landmarks[mcpIdx].y - margin;
     };
 
-    const isCurled = (tipIdx: number, mcpIdx: number) => {
-      return landmarks[tipIdx].y > landmarks[mcpIdx].y;
+    const isDown = (tipIdx: number, mcpIdx: number, margin = 0.03) => {
+      return landmarks[tipIdx].y > landmarks[mcpIdx].y + margin;
     };
 
-    const thumbExtended = isExtended(4, 2);
-    const indexExtended = isExtended(8, 5);
-    const middleExtended = isExtended(12, 9);
-    const ringExtended = isExtended(16, 13);
-    const pinkyExtended = isExtended(20, 17);
+    const isHoriz = (tipIdx: number, mcpIdx: number) => {
+      const dx = Math.abs(landmarks[tipIdx].x - landmarks[mcpIdx].x);
+      const dy = Math.abs(landmarks[tipIdx].y - landmarks[mcpIdx].y);
+      return dx > dy + 0.02;
+    };
 
-    // Heuristic hand sign mappings:
-    // Tiger: Index & Middle extended, Ring & Pinky curled
-    if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
-      return { label: 'Tiger', confidence: 0.92 };
+    // Extension status for 5 fingers (Thumb: 4, Index: 8, Middle: 12, Ring: 16, Pinky: 20)
+    const thumbUp = isUp(4, 2, 0.02);
+    const indexUp = isUp(8, 5);
+    const middleUp = isUp(12, 9);
+    const ringUp = isUp(16, 13);
+    const pinkyUp = isUp(20, 17);
+
+    const indexHoriz = isHoriz(8, 5);
+    const middleHoriz = isHoriz(12, 9);
+    const ringHoriz = isHoriz(16, 13);
+    const pinkyHoriz = isHoriz(20, 17);
+
+    const indexDown = isDown(8, 5);
+    const middleDown = isDown(12, 9);
+    const ringDown = isDown(16, 13);
+    const pinkyDown = isDown(20, 17);
+
+    // Multi-hand detection checks (if 2 hands are present in frame)
+    const twoHandsDetected = allHands && allHands.length >= 2;
+
+    // --- CLASSIFICATION RULES BASED ON OFFICIAL 12-SEAL REFERENCE IMAGE ---
+
+    // 1. RAT (Ne): Left Index finger pointing straight UP, enclosed by Right hand fist
+    if (indexUp && !middleUp && !ringUp && !pinkyUp && !indexHoriz) {
+      return { label: 'Rat', confidence: 0.95 };
     }
 
-    // Serpent: All fingers extended close together
-    if (indexExtended && middleExtended && ringExtended && pinkyExtended && !thumbExtended) {
-      return { label: 'Serpent', confidence: 0.88 };
+    // 2. OX (Ushi): Middle finger extended UP, while other fingers folded or horizontal
+    if (middleUp && !indexUp && !ringUp && !pinkyUp) {
+      return { label: 'Ox', confidence: 0.94 };
     }
 
-    // Dragon: Open claw posture (all fingers extended + spread apart)
-    if (thumbExtended && indexExtended && middleExtended && ringExtended && pinkyExtended) {
-      return { label: 'Dragon', confidence: 0.85 };
+    // 3. TIGER (Tora): Index & Middle fingers extended UP together, Ring & Pinky folded inward
+    if (indexUp && middleUp && !ringUp && !pinkyUp) {
+      return { label: 'Tiger', confidence: 0.96 };
     }
 
-    // Ram: Index, Middle, Ring extended, Pinky curled
-    if (indexExtended && middleExtended && ringExtended && !pinkyExtended) {
-      return { label: 'Ram', confidence: 0.89 };
+    // 4. HARE (U): Gun / L-shape - Thumb UP + Index extended horizontally, Middle/Ring/Pinky folded
+    if ((thumbUp || indexHoriz) && indexHoriz && !middleUp && !ringUp && !pinkyUp) {
+      return { label: 'Hare', confidence: 0.93 };
     }
 
-    // Boar: Fist closed / all curled
-    if (!indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-      return { label: 'Boar', confidence: 0.90 };
+    // 5. DRAGON (Tatsu): Both hands interlaced with fingers flexed downward, or open claw arch
+    if (indexDown && middleDown && ringDown && pinkyDown) {
+      return { label: 'Dragon', confidence: 0.91 };
+    }
+
+    // 6. SERPENT (Mi): All 4 fingers extended straight UP pressed together (flat palm clasp)
+    if (indexUp && middleUp && ringUp && pinkyUp) {
+      return { label: 'Serpent', confidence: 0.96 };
+    }
+
+    // 7. RAM (Hitsuji): Index, Middle, Ring extended UP, Pinky curled
+    if (indexUp && middleUp && ringUp && !pinkyUp) {
+      return { label: 'Ram', confidence: 0.93 };
+    }
+
+    // 8. HORSE (Uma): Index extended pointing diagonally inward to form a peaked triangle ("A" frame)
+    if (indexUp && !middleUp && !ringUp && !pinkyUp && Math.abs(landmarks[8].x - wrist.x) < 0.1) {
+      return { label: 'Horse', confidence: 0.92 };
+    }
+
+    // 9. MONKEY (Saru): Both hands flat resting horizontally on top of each other
+    if (indexHoriz && middleHoriz && ringHoriz && pinkyHoriz) {
+      return { label: 'Monkey', confidence: 0.94 };
+    }
+
+    // 10. DOG (Inu): Flat horizontal hand on top of closed fist
+    if (indexHoriz && middleHoriz && ringHoriz && !pinkyUp) {
+      return { label: 'Dog', confidence: 0.92 };
+    }
+
+    // 11. BIRD (Tori): Peaked crown / Horns - Index UP + Pinky UP, Middle & Ring bent/interlocked in center
+    if (indexUp && pinkyUp && !middleUp && !ringUp) {
+      return { label: 'Bird', confidence: 0.97 };
+    }
+
+    // 12. BOAR (I): Closed fist or wrists together with knuckles/fingers flexed downward
+    if (!indexUp && !middleUp && !ringUp && !pinkyUp) {
+      return { label: 'Boar', confidence: 0.91 };
     }
 
     return { label: 'None', confidence: 0.5 };

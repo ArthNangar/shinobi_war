@@ -7,6 +7,8 @@ import { HAND_SEALS_REFERENCE_DATA } from '@/lib/game/handSignData';
 import { PredictionResult } from '@/lib/vision';
 import { Eye, CheckCircle2, Zap, Clock, Sparkles, Flame, ShieldAlert } from 'lucide-react';
 
+import { HandSignReferenceImage } from './HandSignReferenceImage';
+
 interface JutsuComboCameraOverlayProps {
   videoRef: React.RefObject<HTMLVideoElement>;
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -98,8 +100,8 @@ export const JutsuComboCameraOverlay: React.FC<JutsuComboCameraOverlayProps> = (
           )}
 
           {comboSuccessJutsu.element === 'Lightning' && (
-            <div className="absolute inset-0 flex items-center justify-center animate-lightning-flash">
-              <div className="w-80 h-80 rounded-full bg-gradient-to-r from-purple-600 via-cyan-400 to-indigo-300 blur-lg shadow-[0_0_120px_#9d4edd] flex items-center justify-center text-8xl">
+            <div className="absolute inset-0 flex items-center justify-center animate-chidori">
+              <div className="w-64 h-64 rounded-full bg-gradient-to-r from-yellow-300 via-cyan-400 to-blue-600 blur-md shadow-[0_0_100px_#ffb703] flex items-center justify-center text-7xl">
                 ⚡
               </div>
             </div>
@@ -159,14 +161,18 @@ export const JutsuComboCameraOverlay: React.FC<JutsuComboCameraOverlayProps> = (
       {/* TOP FLOATING REAL-TIME FEEDBACK BAR */}
       <div className="absolute top-12 left-3 right-3 z-30 flex items-center justify-between gap-2 pointer-events-none">
         {/* Active Target Sign Badge */}
-        <div className="px-3 py-1.5 rounded-xl bg-black/80 border border-slate-700/80 backdrop-blur-md flex items-center gap-2">
-          <span className="text-lg">{targetSealData?.symbol || '📜'}</span>
+        <div className="px-3 py-1.5 rounded-xl bg-black/80 border border-slate-700/80 backdrop-blur-md flex items-center gap-2.5">
+          <HandSignReferenceImage
+            sealType={targetSeal}
+            className="w-9 h-8 rounded border border-amber-400/60"
+          />
           <div>
             <span className="text-[10px] text-slate-400 font-tech block uppercase">
               Target Step ({currentStepIndex + 1}/{selectedJutsu.sequence.length})
             </span>
-            <span className="text-xs font-bold text-amber-300 font-cinzel">
-              {targetSealData?.name || targetSeal}
+            <span className="text-xs font-bold text-amber-300 font-cinzel flex items-center gap-1">
+              <span>{targetSealData?.name || targetSeal}</span>
+              <span className="text-slate-400 font-mono">{targetSealData?.symbol}</span>
             </span>
           </div>
         </div>

@@ -4,18 +4,18 @@ import { soundFx } from '@/components/audio/SoundEffects';
 
 // Master Database of 12 Zodiac Hand Seals
 export const HAND_SEALS: Record<SealType, HandSealInfo> = {
-  TIGER: { type: 'TIGER', name: 'Tiger', kanji: '寅', symbol: '🐅', color: '#FF5252', glowClass: 'seal-glow-tiger', keyShortcut: '1' },
-  BIRD: { type: 'BIRD', name: 'Bird', kanji: '酉', symbol: '🦅', color: '#FF9F1C', glowClass: 'seal-glow-bird', keyShortcut: '2' },
-  BOAR: { type: 'BOAR', name: 'Boar', kanji: '亥', symbol: '🐗', color: '#E71D36', glowClass: 'seal-glow-boar', keyShortcut: '3' },
-  DRAGON: { type: 'DRAGON', name: 'Dragon', kanji: '辰', symbol: '🐉', color: '#00F2FE', glowClass: 'seal-glow-dragon', keyShortcut: '4' },
-  RAM: { type: 'RAM', name: 'Ram', kanji: '未', symbol: '🐏', color: '#9D4EDD', glowClass: 'seal-glow-ram', keyShortcut: '5' },
-  SERPENT: { type: 'SERPENT', name: 'Serpent', kanji: '巳', symbol: '🐍', color: '#2EC4B6', glowClass: 'seal-glow-serpent', keyShortcut: '6' },
-  MONKEY: { type: 'MONKEY', name: 'Monkey', kanji: '申', symbol: '🐒', color: '#FFB703', glowClass: 'seal-glow-tiger', keyShortcut: '7' },
-  OX: { type: 'OX', name: 'Ox', kanji: '丑', symbol: '🐂', color: '#8D99AE', glowClass: 'seal-glow-ram', keyShortcut: '8' },
-  DOG: { type: 'DOG', name: 'Dog', kanji: '戌', symbol: '🐕', color: '#4A4E69', glowClass: 'seal-glow-boar', keyShortcut: '9' },
-  HORSE: { type: 'HORSE', name: 'Horse', kanji: '午', symbol: '🐎', color: '#FB8500', glowClass: 'seal-glow-bird', keyShortcut: 'Q' },
-  HARE: { type: 'HARE', name: 'Hare', kanji: '卯', symbol: '🐇', color: '#00B4D8', glowClass: 'seal-glow-dragon', keyShortcut: 'W' },
-  RAT: { type: 'RAT', name: 'Rat', kanji: '子', symbol: '🐀', color: '#6C757D', glowClass: 'seal-glow-serpent', keyShortcut: 'E' },
+  TIGER: { type: 'TIGER', name: 'Tiger', kanji: '', symbol: '🐅', color: '#FF5252', glowClass: 'seal-glow-tiger', keyShortcut: '1' },
+  BIRD: { type: 'BIRD', name: 'Bird', kanji: '', symbol: '🦅', color: '#FF9F1C', glowClass: 'seal-glow-bird', keyShortcut: '2' },
+  BOAR: { type: 'BOAR', name: 'Boar', kanji: '', symbol: '🐗', color: '#E71D36', glowClass: 'seal-glow-boar', keyShortcut: '3' },
+  DRAGON: { type: 'DRAGON', name: 'Dragon', kanji: '', symbol: '🐉', color: '#00F2FE', glowClass: 'seal-glow-dragon', keyShortcut: '4' },
+  RAM: { type: 'RAM', name: 'Ram', kanji: '', symbol: '🐏', color: '#9D4EDD', glowClass: 'seal-glow-ram', keyShortcut: '5' },
+  SERPENT: { type: 'SERPENT', name: 'Serpent', kanji: '', symbol: '🐍', color: '#2EC4B6', glowClass: 'seal-glow-serpent', keyShortcut: '6' },
+  MONKEY: { type: 'MONKEY', name: 'Monkey', kanji: '', symbol: '🐒', color: '#FFB703', glowClass: 'seal-glow-tiger', keyShortcut: '7' },
+  OX: { type: 'OX', name: 'Ox', kanji: '', symbol: '🐂', color: '#8D99AE', glowClass: 'seal-glow-ram', keyShortcut: '8' },
+  DOG: { type: 'DOG', name: 'Dog', kanji: '', symbol: '🐕', color: '#4A4E69', glowClass: 'seal-glow-boar', keyShortcut: '9' },
+  HORSE: { type: 'HORSE', name: 'Horse', kanji: '', symbol: '🐎', color: '#FB8500', glowClass: 'seal-glow-bird', keyShortcut: 'Q' },
+  HARE: { type: 'HARE', name: 'Hare', kanji: '', symbol: '🐇', color: '#00B4D8', glowClass: 'seal-glow-dragon', keyShortcut: 'W' },
+  RAT: { type: 'RAT', name: 'Rat', kanji: '', symbol: '🐀', color: '#6C757D', glowClass: 'seal-glow-serpent', keyShortcut: 'E' },
 };
 
 // Master Database of Ninjutsu Sequences

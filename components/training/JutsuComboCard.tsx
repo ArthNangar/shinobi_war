@@ -5,6 +5,7 @@ import { Jutsu } from '@/types/shinobi';
 import { HAND_SEALS_REFERENCE_DATA } from '@/lib/game/handSignData';
 import { Clock, Check, Flame, Shield, Sparkles, ChevronRight, Play } from 'lucide-react';
 import { HandSignIllustration } from './HandSignIllustration';
+import { HandSignReferenceImage } from './HandSignReferenceImage';
 
 interface JutsuComboCardProps {
   jutsu: Jutsu;
@@ -90,16 +91,19 @@ export const JutsuComboCard: React.FC<JutsuComboCardProps> = ({
           <div className="relative w-full rounded-2xl bg-slate-950/90 border border-amber-400/50 p-3.5 overflow-hidden flex items-center gap-4 shadow-[0_0_20px_rgba(251,191,36,0.15)] group">
             <div className="absolute inset-0 scanline-bg opacity-20 pointer-events-none" />
 
-            {/* PROPER HAND SIGN IMAGE ON THE LEFT */}
-            <div className="relative shrink-0 p-2 rounded-xl bg-slate-900 border border-amber-400/60 shadow-lg flex items-center justify-center">
-              <HandSignIllustration
+            {/* OFFICIAL ANIME REFERENCE IMAGE + SKELETON DIAGRAM */}
+            <div className="relative shrink-0 flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-amber-400/60 shadow-lg">
+              <HandSignReferenceImage
                 sealType={activeSealType}
-                color={activeSealData?.color || '#FFB703'}
-                size="md"
+                className="w-16 h-16 rounded-lg border border-amber-400/40"
               />
-              <span className="absolute -bottom-1 -right-1 text-xs font-black px-1.5 py-0.5 rounded bg-black/90 border border-slate-700 text-amber-300 font-cinzel">
-                {activeSealData?.kanji}
-              </span>
+              <div className="shrink-0 hidden sm:block">
+                <HandSignIllustration
+                  sealType={activeSealType}
+                  color={activeSealData?.color || '#FFB703'}
+                  size="md"
+                />
+              </div>
             </div>
 
             {/* NAME & EXECUTION INSTRUCTIONS ALONGSIDE IMAGE */}
@@ -173,12 +177,11 @@ export const JutsuComboCard: React.FC<JutsuComboCardProps> = ({
                   {isCompleted ? <Check className="w-3 h-3 stroke-[3]" /> : idx + 1}
                 </div>
 
-                {/* PROPER HAND SIGN IMAGE ON THE LEFT */}
-                <div className="shrink-0">
-                  <HandSignIllustration
+                {/* OFFICIAL HAND SIGN IMAGE CROPPED THUMBNAIL */}
+                <div className="shrink-0 flex items-center gap-1">
+                  <HandSignReferenceImage
                     sealType={sealType}
-                    color={sealData?.color || '#00F2FE'}
-                    size="sm"
+                    className="w-8 h-8 rounded border border-slate-700/80"
                   />
                 </div>
 
@@ -188,7 +191,7 @@ export const JutsuComboCard: React.FC<JutsuComboCardProps> = ({
                     <span className="text-xs font-bold font-cinzel truncate">
                       {sealData?.name || sealType}
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400">{sealData?.kanji}</span>
+                    <span className="text-[10px] font-mono text-slate-400">{sealData?.symbol}</span>
                   </div>
                   <div className="text-[9px] font-mono text-slate-400 truncate">
                     {isActive ? 'FORM NOW' : isCompleted ? 'DONE' : 'WAITING'}

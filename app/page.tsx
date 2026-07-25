@@ -43,9 +43,9 @@ export default function ShinobiLandingPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,_rgba(245,158,11,0.08),_transparent_50%)] pointer-events-none z-0" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(6,182,212,0.08),_transparent_50%)] pointer-events-none z-0" />
 
-      {/* Subtle Japanese Watermark Kanji */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[18vw] font-black text-slate-900/40 select-none pointer-events-none z-0 tracking-widest font-serif blur-[1px]">
-        忍者
+      {/* Subtle Ambient Watermark */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[16vw] font-black text-slate-900/40 select-none pointer-events-none z-0 tracking-widest font-mono blur-[1px] uppercase">
+        SHINOBI
       </div>
 
       {/* Main Centered Container */}

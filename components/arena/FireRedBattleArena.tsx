@@ -91,7 +91,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
 
   const [showWebcamPip, setShowWebcamPip] = useState(true);
   const [battleMessage, setBattleMessage] = useState<string>(
-    '忍 術 発 動: Channel Chakra into Hand Seals to unleash powerful Ninjutsu!'
+    '   : Channel Chakra into Hand Seals to unleash powerful Ninjutsu!'
   );
 
   // Monitor activeJutsuFX or sequence changes to trigger center stage visual clashes
@@ -111,12 +111,12 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         : 'fireball';
 
       const kanjiMap: Record<string, string> = {
-        Fire: '火 遁 • KATON',
-        Water: '水 遁 • SUITON',
-        Lightning: '雷 遁 • RAITON',
-        Secret: '秘 術 • HIJUTSU',
-        Earth: '土 遁 • DOTON',
-        Wind: '風 遁 • FUTON',
+        Fire: '  • KATON',
+        Water: '  • SUITON',
+        Lightning: '  • RAITON',
+        Secret: '  • HIJUTSU',
+        Earth: '  • DOTON',
+        Wind: '  • FUTON',
       };
 
       setClashState({
@@ -126,7 +126,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
         damage: activeJutsuFX.damage,
         title: activeJutsuFX.name,
         japaneseName: activeJutsuFX.japaneseName,
-        kanji: kanjiMap[activeJutsuFX.element] || '忍 術',
+        kanji: kanjiMap[activeJutsuFX.element] || ' ',
       });
 
       setBattleMessage(
@@ -146,7 +146,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
   // Trigger simultaneous clash if both sequences have seals
   useEffect(() => {
     if (localSequence.length >= 3 && opponentSequence.length >= 3) {
-      setBattleMessage('⚡ 終末の谷・印結び: Dual Shinobi seals resolving in real-time clash!');
+      setBattleMessage('⚡ : Dual Shinobi seals resolving in real-time clash!');
     }
   }, [localSequence.length, opponentSequence.length]);
 
@@ -247,7 +247,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
           <div className="mt-1.5 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-red-900 flex items-center gap-1">
-                <Heart className="w-3 h-3 fill-red-700" /> 体 力 (HP)
+                <Heart className="w-3 h-3 fill-red-700" />   (HP)
               </span>
               <span>{Math.round(p2HpPercent)}%</span>
             </div>
@@ -266,7 +266,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
           <div className="mt-1 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-blue-900 flex items-center gap-1">
-                <Zap className="w-3 h-3 fill-cyan-600" /> チャクラ (Chakra)
+                <Zap className="w-3 h-3 fill-cyan-600" />  (Chakra)
               </span>
               <span>{player2.chakra}/100</span>
             </div>
@@ -504,7 +504,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
           <div className="mt-1.5 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-red-900 flex items-center gap-1">
-                <Heart className="w-3 h-3 fill-red-700" /> 体 力 (HP)
+                <Heart className="w-3 h-3 fill-red-700" />   (HP)
               </span>
               <span>
                 {player1.hp} / {player1.maxHp}
@@ -525,7 +525,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
           <div className="mt-1 space-y-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono font-black text-amber-950">
               <span className="text-blue-900 flex items-center gap-1">
-                <Zap className="w-3 h-3 fill-cyan-600" /> チャクラ (Chakra)
+                <Zap className="w-3 h-3 fill-cyan-600" />  (Chakra)
               </span>
               <span>
                 {player1.chakra} / {player1.maxChakra}
@@ -567,7 +567,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
             <div className="flex items-center justify-between text-xs font-mono font-bold text-cyan-300">
               <span className="flex items-center gap-1.5 font-black">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                印 結 び • MY SIGNS ({localSequence.length}/8)
+                   • MY SIGNS ({localSequence.length}/8)
               </span>
               {localSequence.length > 0 && (
                 <button
@@ -602,7 +602,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
             <div className="flex items-center justify-between text-xs font-mono font-bold text-red-300">
               <span className="flex items-center gap-1.5 font-black">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                敵 印 • ENEMY SIGNS ({opponentSequence.length}/8)
+                  • ENEMY SIGNS ({opponentSequence.length}/8)
               </span>
               <button
                 onClick={onAIOpponentAction}
@@ -637,7 +637,7 @@ export const FireRedBattleArena: React.FC<FireRedBattleArenaProps> = ({
            ----------------------------------------------------------------------- */}
         <div className="space-y-1.5 pt-1 border-t border-amber-900/40">
           <div className="flex items-center justify-between flex-wrap gap-2 text-[10px] font-mono font-bold text-amber-950">
-            <span>十二支印 (Zodiac Hand Seals - Click or Press 1-9, Q, W, E):</span>
+            <span> (Zodiac Hand Seals - Click or Press 1-9, Q, W, E):</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onChargeChakra('p1')}

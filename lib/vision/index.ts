@@ -62,8 +62,18 @@ export class ClientVisionPipeline {
    * Attach or change target Canvas element for skeleton drawing
    */
   public attachCanvas(canvas: HTMLCanvasElement): void {
-    this.canvasElement = canvas;
-    this.canvasCtx = canvas.getContext('2d');
+    if (!canvas) return;
+    if (this.canvasElement !== canvas) {
+      this.canvasElement = canvas;
+      this.canvasCtx = canvas.getContext('2d');
+    }
+  }
+
+  /**
+   * Attach or update target Video element for stream playback
+   */
+  public attachVideoElement(video: HTMLVideoElement): void {
+    this.camera.attachVideo(video);
   }
 
   /**
@@ -141,7 +151,7 @@ export class ClientVisionPipeline {
         // 3. Classify Hand Sign using TensorFlow.js classifier
         if (handResult && handResult.landmarks.length > 0) {
           const primaryHandLandmarks = handResult.landmarks[0];
-          prediction = await this.classifier.predict(primaryHandLandmarks);
+          prediction = await this.classifier.predict(primaryHandLandmarks, handResult.landmarks);
         }
       }
 

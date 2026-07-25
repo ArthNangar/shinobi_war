@@ -34,7 +34,8 @@ export const WebcamCanvasOverlay: React.FC<WebcamCanvasOverlayProps> = ({
           playsInline
           muted
           autoPlay
-          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 z-0 opacity-100"
+          onLoadedMetadata={(e) => e.currentTarget.play().catch(() => {})}
+          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 z-0 opacity-100 bg-slate-950"
         />
 
         {/* HTML5 Overlay Canvas for hand landmarks and skeleton tracking */}
