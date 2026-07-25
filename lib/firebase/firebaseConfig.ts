@@ -308,6 +308,23 @@ export class FirebaseSignalingClient {
     return () => this.off(normalizedPath);
   }
 
+  // Reopen signaling client after reset or close
+  reopen(): void {
+    this.isClosed = false;
+    if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined' && !this.broadcastChannel) {
+      try {
+        this.broadcastChannel = new BroadcastChannel('shinobi_seals_local_signaling');
+        this.broadcastChannel.onmessage = (event) => {
+          if (this.isClosed) return;
+          const { path, data } = event.data || {};
+          if (path) {
+            this.notifyLocalListeners(path, data);
+          }
+        };
+      } catch (_) {}
+    }
+  }
+
   // Close & unsubscribe listener for path
   off(path: string): void {
     const normalizedPath = path.replace(/^\//, '');
@@ -342,10 +359,5 @@ export class FirebaseSignalingClient {
       this.broadcastChannel = null;
     }
     console.log('[Firebase RTDB] Closed all active signaling database listeners.');
-  }
-
-  // Re-open client if needed for reconnection
-  reopen(): void {
-    this.isClosed = false;
   }
 }

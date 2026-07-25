@@ -95,7 +95,7 @@ export class FirebaseSignalingService {
 
   // Listen for SDP Offer at rooms/{roomId}/offer
   onOffer(roomId: string, onOfferReceived: (offer: SignalingOffer) => void): void {
-    if (this.isListenersClosed) return;
+    this.reopenListeners();
     this.currentRoomId = roomId;
     const path = `rooms/${roomId}/offer`;
 
@@ -110,7 +110,7 @@ export class FirebaseSignalingService {
 
   // Listen for SDP Answer at rooms/{roomId}/answer
   onAnswer(roomId: string, onAnswerReceived: (answer: SignalingAnswer) => void): void {
-    if (this.isListenersClosed) return;
+    this.reopenListeners();
     this.currentRoomId = roomId;
     const path = `rooms/${roomId}/answer`;
 
@@ -129,7 +129,7 @@ export class FirebaseSignalingService {
     listenForCallerCandidates: boolean,
     onCandidateReceived: (candidate: RTCIceCandidateInit) => void
   ): void {
-    if (this.isListenersClosed) return;
+    this.reopenListeners();
     this.currentRoomId = roomId;
     const path = listenForCallerCandidates
       ? `rooms/${roomId}/callerCandidates`
@@ -184,6 +184,7 @@ export class FirebaseSignalingService {
   reset(): void {
     this.closeListeners();
     this.isListenersClosed = false;
+    this.client.reopen();
     this.currentRoomId = null;
   }
 }
